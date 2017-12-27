@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 1ca5c568256afec4ea2c872c22686b31
+timeCreated: 1460706656
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - boidCountReporter: {instanceID: 0}
+  - centreOfMassController: {instanceID: 0}
+  - distanceController: {instanceID: 0}
+  - velocityController: {instanceID: 0}
+  - boidBody: {fileID: 105632, guid: e014714b9c1707b45becd29532284463, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
