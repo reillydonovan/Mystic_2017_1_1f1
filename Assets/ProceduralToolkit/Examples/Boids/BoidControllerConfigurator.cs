@@ -73,12 +73,12 @@ namespace ProceduralToolkit.Examples
             Color colorA = GetMainColorHSV().ToColor();
             Color colorB = GetSecondaryColorHSV().ToColor();
 
-            config.template = MeshDraft.Tetrahedron(0.3f);
+            config.template = MeshDraft.Teardrop(0.3f, .5f, 3, 6);
             // Assuming that we are dealing with tetrahedron, first vertex should be boid's "nose"
-            config.template.colors.Add(colorA);
+         //   config.template.colors.Add(colorA);
             for (int i = 1; i < config.template.vertexCount; i++)
             {
-                config.template.colors.Add(colorB);
+           //     config.template.colors.Add(colorB);
             }
 
             meshFilter.mesh = controller.Generate(config);

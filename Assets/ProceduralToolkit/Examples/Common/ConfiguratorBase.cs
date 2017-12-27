@@ -105,9 +105,9 @@ namespace ProceduralToolkit.Examples
             currentPalette.horizonColor = ColorHSV.Lerp(currentPalette.horizonColor, targetPalette.horizonColor, t);
             currentPalette.groundColor = ColorHSV.Lerp(currentPalette.groundColor, targetPalette.groundColor, t);
 
-            skybox.SetColor("_SkyColor", currentPalette.skyColor.ToColor());
-            skybox.SetColor("_HorizonColor", currentPalette.horizonColor.ToColor());
-            skybox.SetColor("_GroundColor", currentPalette.groundColor.ToColor());
+          //  skybox.SetColor("_SkyColor", currentPalette.skyColor.ToColor());
+         //   skybox.SetColor("_HorizonColor", currentPalette.horizonColor.ToColor());
+          //  skybox.SetColor("_GroundColor", currentPalette.groundColor.ToColor());
         }
 
         private class Palette

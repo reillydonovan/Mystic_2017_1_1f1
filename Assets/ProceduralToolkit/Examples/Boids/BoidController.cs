@@ -17,6 +17,7 @@ namespace ProceduralToolkit.Examples
         [Serializable]
         public class Config
         {
+            public GameObject targetObject;
             public Vector3 anchor = Vector3.zero;
             public float spawnSphere = 10;
             public float worldSphere = 15;
@@ -188,7 +189,7 @@ namespace ProceduralToolkit.Examples
             {
                 var boid = boids[i];
                 boid.rotation = Quaternion.FromToRotation(Vector3.up, boid.velocity);
-
+                config.anchor = config.targetObject.transform.position;
                 // Contain boids in sphere
                 Vector3 distanceToAnchor = config.anchor - boid.position;
                 if (distanceToAnchor.sqrMagnitude > config.worldSphere*config.worldSphere)
