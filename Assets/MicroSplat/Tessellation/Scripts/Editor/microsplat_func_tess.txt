@@ -1,0 +1,202 @@
+
+            #include "Tessellation.cginc"
+
+            half4 _TessData1; // tess, displacement, mipBias, edge length
+            half4 _TessData2; // distance min, max, shaping, upbias
+
+            float4 TessDistance (appdata v0, appdata v1, appdata v2) 
+            {
+                return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, _TessData2.x, _TessData2.y, _TessData1.x);
+            }
+
+
+            void disp (inout appdata i)
+            {
+               #if !_MICROMESH
+                  float4 tangent;
+                  tangent.xyz = cross(i.normal, float3(0,0,1));
+                  tangent.w = -1;
+                  i.tangent = tangent;
+               #endif
+
+               half4 weights;
+               float3 worldPos = mul(unity_ObjectToWorld, i.vertex).xyz;
+
+
+
+
+               #if _SNOW || _TRIPLANAR
+               float3 worldNormal = UnityObjectToWorldNormal(i.normal);
+               #endif
+
+               Config config;
+               fixed4 w0 = MICROSPLAT_SAMPLE_TEX2D_LOD(_Control0, i.texcoord.xy, 0);
+               fixed4 w1 = 0; fixed4 w2 = 0; fixed4 w3 = 0;
+               #if !_MAX4TEXTURES
+               w1 = MICROSPLAT_SAMPLE_TEX2D_SAMPLER_LOD(_Control1, _Control0, i.texcoord.xy, 0);
+               #endif
+
+               #if !_MAX4TEXTURES && !_MAX8TEXTURES
+               w2 = MICROSPLAT_SAMPLE_TEX2D_SAMPLER_LOD(_Control2, _Control0, i.texcoord.xy, 0);
+               #endif
+
+               #if !_MAX4TEXTURES && !_MAX8TEXTURES && !_MAX12TEXTURES
+               w3 = MICROSPLAT_SAMPLE_TEX2D_SAMPLER_LOD(_Control3, _Control0, i.texcoord.xy, 0);
+               #endif
+
+               #if _PUDDLES || _STREAMS || _LAVA
+               fixed4 levelFx = SampleFXLevelsLOD(i.texcoord.xy);
+               #endif
+
+               Setup(weights, i.texcoord.xy, config, w0, w1, w2, w3, worldPos);
+
+                // uvScale before anything
+               #if _PERTEXUVSCALEOFFSET && !_TRIPLANAR
+                  SAMPLE_PER_TEX(ptUVScale, 0.5, config, half4(1,1,0,0));
+                  config.uv0.xy = config.uv0.xy * ptUVScale0.rg + ptUVScale0.ba;
+                  config.uv1.xy = config.uv1.xy * ptUVScale1.rg + ptUVScale1.ba;
+                  #if !_MAX2LAYER
+                     config.uv2.xy = config.uv2.xy * ptUVScale2.rg + ptUVScale2.ba;
+                  #endif
+                  #if !_MAX3LAYER || !_MAX2LAYER
+                     config.uv3.xy = config.uv3.xy * ptUVScale3.rg + ptUVScale3.ba;
+                  #endif
+               #endif
+
+
+               TriplanarConfig tc = (TriplanarConfig)0;
+               UNITY_INITIALIZE_OUTPUT(TriplanarConfig,tc);
+
+               #if _TRIPLANAR
+                  PrepTriplanar(worldNormal, worldPos, config, tc, weights);
+               #endif
+
+               #if _TEXTURECLUSTER2 || _TEXTURECLUSTER3
+                  PrepClustersDisplace(config.uv, config);
+               #endif
+
+               half albedo0 = 0;
+               half albedo1 = 0;
+               half albedo2 = 0;
+               half albedo3 = 0;
+               half mipLevel = _TessData1.z;
+
+               #if _TRIPLANAR
+                  half4 contrasts = _Contrast.xxxx;
+                  #if _PERTEXTRIPLANARCONTRAST
+                     SAMPLE_PER_TEX(ptc, 5.5, config, half4(1,0.5,0,0));
+                     contrasts = half4(ptc0.y, ptc1.y, ptc2.y, ptc3.y);
+                  #endif
+
+                  {
+                     half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv0[0], config.cluster0, mipLevel);
+                     half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv0[1], config.cluster0, mipLevel);
+                     half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv0[2], config.cluster0, mipLevel);
+                     half3 bf = tc.pN0;
+                     #if _TRIPLANARHEIGHTBLEND
+                     bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN0, contrasts.x);
+                     tc.pN0 = bf;
+                     #endif
+
+                     albedo0 = a0.a * bf.x + a1.a * bf.y + a2.a * bf.z;
+                  }
+                  {
+                     half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv1[0], config.cluster1, mipLevel);
+                     half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv1[1], config.cluster1, mipLevel);
+                     half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv1[2], config.cluster1, mipLevel);
+                     half3 bf = tc.pN1;
+                     #if _TRIPLANARHEIGHTBLEND
+                     bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN1, contrasts.x);
+                     tc.pN1 = bf;
+                     #endif
+                     albedo1 = a0.a * bf.x + a1.a * bf.y + a2.a * bf.z;
+                  }
+                  #if !_MAX2LAYER
+                  {
+                     half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv2[0], config.cluster2, mipLevel);
+                     half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv2[1], config.cluster2, mipLevel);
+                     half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv2[2], config.cluster2, mipLevel);
+                     half3 bf = tc.pN2;
+                     #if _TRIPLANARHEIGHTBLEND
+                     bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN2, contrasts.x);
+                     tc.pN2 = bf;
+                     #endif
+                     albedo2 = a0.a * bf.x + a1.a * bf.y + a2.a * bf.z;
+                  }
+                  #endif
+                  #if !_MAX3LAYER || !_MAX2LAYER
+                  {
+                     half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv3[0], config.cluster3, mipLevel);
+                     half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv3[1], config.cluster3, mipLevel);
+                     half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(tc.uv3[2], config.cluster3, mipLevel);
+                     half3 bf = tc.pN3;
+                     #if _TRIPLANARHEIGHTBLEND
+                     bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN3, contrasts.x);
+                     tc.pN3 = bf;
+                     #endif
+                     albedo3 = a0.a * bf.x + a1.a * bf.y + a2.a * bf.z;
+                  }
+                  #endif
+
+               #else
+                  albedo0 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(config.uv0, config.cluster0, mipLevel).a;
+                  albedo1 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(config.uv1, config.cluster1, mipLevel).a;
+                  #if !_MAX2LAYER
+                  albedo2 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(config.uv2, config.cluster2, mipLevel).a; 
+                  #endif
+                  #if !_MAX3LAYER || !_MAX2LAYER
+                  albedo3 = MICROSPLAT_SAMPLE_DIFFUSE_LOD(config.uv3, config.cluster3, mipLevel).a;
+                  #endif
+               #endif
+
+               float4 heightWeights = ComputeWeights(weights, albedo0, albedo1, albedo2, albedo3, _TessData2.z);
+
+               #if _PERTEXTESSDISPLACE || _PERTEXTESSOFFSET || _PERTEXTESSUPBIAS
+               SAMPLE_PER_TEX(perTexDispOffsetBias, 6.5, config, half4(1.0, 0.0, 0, 0.0));
+               #endif
+
+               #if _PERTEXTESSDISPLACE
+                  albedo0 *= perTexDispOffsetBias0.x;
+                  albedo1 *= perTexDispOffsetBias1.x;
+                  #if !_MAX2LAYER
+                     albedo2 *= perTexDispOffsetBias2.x;
+                  #endif
+                  #if !_MAX3LAYER || !_MAX2LAYER
+                     albedo3 *= perTexDispOffsetBias3.x;
+                  #endif
+               #endif
+
+
+
+               half h = albedo0 * heightWeights.x + albedo1 * heightWeights.y + albedo2 * heightWeights.z + albedo3 * heightWeights.w;
+
+               #if _PUDDLES || _STREAMS || _LAVA
+                  half maxLevel = max(max(levelFx.g, levelFx.b), levelFx.a);
+                  h = max(h, maxLevel);
+               #endif
+
+               #if _PERTEXTESSOFFSET
+                  h += BlendWeights(perTexDispOffsetBias0.z, perTexDispOffsetBias1.z, perTexDispOffsetBias2.z, perTexDispOffsetBias3.z, weights);
+               #endif
+
+
+               #if _SNOW
+                  float snowAmount = DoSnowDisplace(h, i.texcoord.xy, worldNormal, worldPos, 0, config, weights);
+                  h += snowAmount;
+               #endif
+
+               float dist = distance(_WorldSpaceCameraPos, worldPos);
+               float tessFade = saturate((dist - _TessData2.x) / (_TessData2.y - _TessData2.x));
+               tessFade *= tessFade;
+               tessFade = 1 - tessFade;
+
+               half upBias = _TessData2.w;
+
+               #if _PERTEXTESSUPBIAS
+                  upBias = BlendWeights(perTexDispOffsetBias0.y, perTexDispOffsetBias1.y, perTexDispOffsetBias2.y, perTexDispOffsetBias3.y, weights);
+               #endif
+
+               float3 offset = (lerp(i.normal, float3(0,1,0), upBias) * (_TessData1.y * h * tessFade));
+
+               i.vertex.xyz += offset;
+            }

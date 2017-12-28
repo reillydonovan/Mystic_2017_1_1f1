@@ -124,36 +124,27 @@ public partial class MicroSplatTerrainEditor : Editor
       return MicroSplatBaseFeatures.DebugOutput.Albedo;
    }
 
+   static void RemoveKeyword(List<string> keywords, string keyword)
+   {
+      if (keywords.Contains(keyword))
+      {
+         keywords.Remove(keyword);
+      }
+   }
+
    static Material SetupMaterial(Material mat, MicroSplatBaseFeatures.DebugOutput debugOutput)
    {
       MicroSplatShaderGUI.MicroSplatCompiler comp = new MicroSplatShaderGUI.MicroSplatCompiler();
       List<string> keywords = new List<string>(mat.shaderKeywords);
-      if (keywords.Contains("_SNOW"))
-      {
-         keywords.Remove("_SNOW");
-      }
-      if (keywords.Contains("_TESSDISTANCE"))
-      {
-         keywords.Remove("_TESSDISTANCE");
-      }
-      if (keywords.Contains("_STREAMS"))
-      {
-         keywords.Remove("_STREAMS");
-      }
-      if (keywords.Contains("_LAVA"))
-      {
-         keywords.Remove("_LAVA");
-      }
-      if (keywords.Contains("_WETNESS"))
-      {
-         keywords.Remove("_WETNESS");
-      }
-      if (keywords.Contains("_PUDDLES"))
-      {
-         keywords.Remove("_PUDDLES");
-      }
-      keywords.Add(FeatureFromOutput(debugOutput).ToString());
 
+      RemoveKeyword(keywords, "_SNOW");
+      RemoveKeyword(keywords, "_TESSDISTANCE");
+      RemoveKeyword(keywords, "_WINDPARTICULATE");
+      RemoveKeyword(keywords, "_SNOWPARTICULATE");
+      RemoveKeyword(keywords, "_GLITTER");
+      RemoveKeyword(keywords, "_SNOWGLITTER");
+
+      keywords.Add(FeatureFromOutput(debugOutput).ToString());
 
       string shader = comp.Compile(keywords.ToArray(), "RenderBake_" + debugOutput.ToString());
       Shader s = ShaderUtil.CreateShaderAsset(shader);
@@ -240,8 +231,7 @@ public partial class MicroSplatTerrainEditor : Editor
       }
 
       AssetDatabase.Refresh();
-
-
    }
+
 
 }

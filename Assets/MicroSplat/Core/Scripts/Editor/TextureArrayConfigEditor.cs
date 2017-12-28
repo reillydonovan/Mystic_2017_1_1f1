@@ -16,7 +16,7 @@ namespace JBooth.MicroSplat
 
       void DrawHeader(TextureArrayConfig cfg)
       {
-         if (cfg.textureMode == TextureArrayConfig.TextureMode.PBR)
+         if (cfg.textureMode != TextureArrayConfig.TextureMode.Basic)
          {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.BeginVertical();
@@ -36,8 +36,16 @@ namespace JBooth.MicroSplat
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField(new GUIContent("AO"), GUILayout.Width(64));
-            cfg.allTextureChannelAO = (TextureArrayConfig.AllTextureChannel)EditorGUILayout.EnumPopup(cfg.allTextureChannelAO, GUILayout.Width(64));
+            if (cfg.IsAdvancedDetail())
+            {
+               EditorGUILayout.LabelField(new GUIContent("Alpha"), GUILayout.Width(64));
+               cfg.allTextureChannelAlpha = (TextureArrayConfig.AllTextureChannel)EditorGUILayout.EnumPopup(cfg.allTextureChannelAlpha, GUILayout.Width(64));
+            }
+            else
+            {         
+               EditorGUILayout.LabelField(new GUIContent("AO"), GUILayout.Width(64));
+               cfg.allTextureChannelAO = (TextureArrayConfig.AllTextureChannel)EditorGUILayout.EnumPopup(cfg.allTextureChannelAO, GUILayout.Width(64));
+            }
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.EndHorizontal();
@@ -45,6 +53,38 @@ namespace JBooth.MicroSplat
          }
       }
 
+      void DrawAntiTileEntry(TextureArrayConfig cfg, TextureArrayConfig.TextureEntry e, int i)
+      {
+         EditorGUILayout.BeginHorizontal();
+         EditorGUILayout.Space();EditorGUILayout.Space();
+         EditorGUILayout.BeginVertical();
+
+         EditorGUILayout.LabelField(new GUIContent("Noise Normal"), GUILayout.Width(92));
+         e.noiseNormal = (Texture2D)EditorGUILayout.ObjectField(e.noiseNormal, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64));
+         EditorGUILayout.EndVertical();
+
+         EditorGUILayout.BeginVertical();
+         EditorGUILayout.LabelField(new GUIContent("Detail"), GUILayout.Width(92));
+         e.detailNoise = (Texture2D)EditorGUILayout.ObjectField(e.detailNoise, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64));
+         e.detailChannel = (TextureArrayConfig.TextureChannel)EditorGUILayout.EnumPopup(e.detailChannel, GUILayout.Width(64));
+         EditorGUILayout.EndVertical();
+
+         EditorGUILayout.BeginVertical();
+         EditorGUILayout.LabelField(new GUIContent("Distance"), GUILayout.Width(92));
+         e.distanceNoise = (Texture2D)EditorGUILayout.ObjectField(e.distanceNoise, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64));
+         e.distanceChannel = (TextureArrayConfig.TextureChannel)EditorGUILayout.EnumPopup(e.distanceChannel, GUILayout.Width(64));
+         EditorGUILayout.EndVertical();
+
+
+         EditorGUILayout.EndHorizontal();
+
+         if (e.noiseNormal == null)
+         {
+            int index = (int)Mathf.Repeat(i, 3);
+            e.noiseNormal = MicroSplatUtilities.GetAutoTexture("microsplat_def_detail_normal_0" + (index+1).ToString());
+         }
+
+      }
 
       bool DrawTextureEntry(TextureArrayConfig cfg, TextureArrayConfig.TextureEntry e, int i, bool controls = true)
       {
@@ -97,7 +137,7 @@ namespace JBooth.MicroSplat
          e.normal = (Texture2D)EditorGUILayout.ObjectField(e.normal, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64));
          EditorGUILayout.EndVertical();
 
-         if (cfg.textureMode == TextureArrayConfig.TextureMode.PBR)
+         if (cfg.textureMode == TextureArrayConfig.TextureMode.PBR || cfg.IsAdvancedDetail())
          {
             EditorGUILayout.BeginVertical();
             if (controls)
@@ -128,14 +168,29 @@ namespace JBooth.MicroSplat
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.BeginVertical();
-            if (controls)
+            if (cfg.IsAdvancedDetail())
             {
-               EditorGUILayout.LabelField(new GUIContent("AO"), GUILayout.Width(64));
+               if (controls)
+               {
+                  EditorGUILayout.LabelField(new GUIContent("Alpha"), GUILayout.Width(64));
+               }
+               e.alpha = (Texture2D)EditorGUILayout.ObjectField(e.alpha, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64));
+               if (cfg.allTextureChannelAlpha == TextureArrayConfig.AllTextureChannel.Custom)
+               {
+                  e.alphaChannel = (TextureArrayConfig.TextureChannel)EditorGUILayout.EnumPopup(e.alphaChannel, GUILayout.Width(64));
+               }
             }
-            e.ao = (Texture2D)EditorGUILayout.ObjectField(e.ao, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64));
-            if (cfg.allTextureChannelAO == TextureArrayConfig.AllTextureChannel.Custom)
+            else
             {
-               e.aoChannel = (TextureArrayConfig.TextureChannel)EditorGUILayout.EnumPopup(e.aoChannel, GUILayout.Width(64));
+               if (controls)
+               {
+                  EditorGUILayout.LabelField(new GUIContent("AO"), GUILayout.Width(64));
+               }
+               e.ao = (Texture2D)EditorGUILayout.ObjectField(e.ao, typeof(Texture2D), false, GUILayout.Width(64), GUILayout.Height(64));
+               if (cfg.allTextureChannelAO == TextureArrayConfig.AllTextureChannel.Custom)
+               {
+                  e.aoChannel = (TextureArrayConfig.TextureChannel)EditorGUILayout.EnumPopup(e.aoChannel, GUILayout.Width(64));
+               }
             }
             EditorGUILayout.EndVertical();
          }
@@ -207,6 +262,9 @@ namespace JBooth.MicroSplat
       #if __MICROSPLAT_TEXTURECLUSTERS__
       static GUIContent CClusterMode = new GUIContent("Cluster Mode", "Add extra slots for packing parallel arrays for texture clustering");
       #endif
+      #if __MICROSPLAT_DETAILRESAMPLE__
+      static GUIContent CAntiTileArray = new GUIContent("AntiTile Array", "Create an array for each texture to have it's own Noise Normal, Detail, and Distance noise texture");
+      #endif
 
       void Remove(TextureArrayConfig cfg, int i)
       {
@@ -268,14 +326,49 @@ namespace JBooth.MicroSplat
          MatchArrayLength(cfg);
          EditorGUI.BeginChangeCheck();
          cfg.textureMode = (TextureArrayConfig.TextureMode)EditorGUILayout.EnumPopup(CTextureMode, cfg.textureMode);
-
-#if __MICROSPLAT_TEXTURECLUSTERS__
-         cfg.clusterMode = (TextureArrayConfig.ClusterMode)EditorGUILayout.EnumPopup(CClusterMode, cfg.clusterMode);
-#endif
-
-         if (cfg.textureMode == TextureArrayConfig.TextureMode.PBR)
+         #if __MICROSPLAT_DETAILRESAMPLE__
+         cfg.antiTileArray = EditorGUILayout.Toggle(CAntiTileArray, cfg.antiTileArray);
+         #endif
+         if (cfg.IsAdvancedDetail())
          {
-            DrawDefaultInspector();
+            cfg.clusterMode = TextureArrayConfig.ClusterMode.None;
+         }
+         #if __MICROSPLAT_TEXTURECLUSTERS__
+         if (!cfg.IsAdvancedDetail())
+         {
+            cfg.clusterMode = (TextureArrayConfig.ClusterMode)EditorGUILayout.EnumPopup(CClusterMode, cfg.clusterMode);
+         }
+         #endif
+
+
+         if (cfg.textureMode != TextureArrayConfig.TextureMode.Basic)
+         {
+            cfg.diffuseTextureSize = (TextureArrayConfig.TextureSize)EditorGUILayout.EnumPopup("Diffuse Texture Size", cfg.diffuseTextureSize);
+            cfg.diffuseCompression = (TextureArrayConfig.Compression)EditorGUILayout.EnumPopup("Diffuse Compression", cfg.diffuseCompression);
+            EditorGUILayout.BeginHorizontal();
+            cfg.diffuseFilterMode = (FilterMode)EditorGUILayout.EnumPopup("Diffuse Filter Mode", cfg.diffuseFilterMode);
+            EditorGUILayout.LabelField("Aniso", GUILayout.Width(64));
+            cfg.diffuseAnisoLevel = EditorGUILayout.IntSlider(cfg.diffuseAnisoLevel, 1, 16);
+            EditorGUILayout.EndHorizontal();
+
+            cfg.normalSAOTextureSize = (TextureArrayConfig.TextureSize)EditorGUILayout.EnumPopup("Normal Texture Size", cfg.normalSAOTextureSize);
+            cfg.normalCompression = (TextureArrayConfig.Compression)EditorGUILayout.EnumPopup("Normal Compression", cfg.normalCompression);
+            EditorGUILayout.BeginHorizontal();
+            cfg.normalFilterMode = (FilterMode)EditorGUILayout.EnumPopup("Normal Filter Mode", cfg.normalFilterMode);
+            EditorGUILayout.LabelField("Aniso", GUILayout.Width(64));
+            cfg.normalAnisoLevel = EditorGUILayout.IntSlider(cfg.normalAnisoLevel, 1, 16);
+            EditorGUILayout.EndHorizontal();
+
+            if (cfg.antiTileArray)
+            {
+               cfg.antiTileTextureSize = (TextureArrayConfig.TextureSize)EditorGUILayout.EnumPopup("Anti-Tile Texture Size", cfg.antiTileTextureSize);
+               cfg.antiTileCompression = (TextureArrayConfig.Compression)EditorGUILayout.EnumPopup("Anti-Tile Compression", cfg.antiTileCompression);
+               EditorGUILayout.BeginHorizontal();
+               cfg.antiTileFilterMode = (FilterMode)EditorGUILayout.EnumPopup("Anti-Tile Filter Mode", cfg.antiTileFilterMode);
+               EditorGUILayout.LabelField("Aniso", GUILayout.Width(64));
+               cfg.antiTileAnisoLevel = EditorGUILayout.IntSlider(cfg.antiTileAnisoLevel, 1, 16);
+               EditorGUILayout.EndHorizontal();
+            }
          }
          else
          {
@@ -287,18 +380,20 @@ namespace JBooth.MicroSplat
          if (MicroSplatUtilities.DrawRollup("Textures", true))
          {
             EditorGUILayout.HelpBox("Don't have a normal map? Any missing textures will be generated automatically from the best available source texture", MessageType.Info);
-
+            bool disableClusters = cfg.IsAdvancedDetail();
             DrawHeader(cfg);
             for (int i = 0; i < cfg.sourceTextures.Count; ++i)
             {
                using (new GUILayout.VerticalScope(GUI.skin.box))
                {
                   bool remove = (DrawTextureEntry(cfg, cfg.sourceTextures[i], i));
-                  if (cfg.clusterMode != TextureArrayConfig.ClusterMode.None)
+
+ 
+                  if (cfg.clusterMode != TextureArrayConfig.ClusterMode.None && !disableClusters)
                   {
                      DrawTextureEntry(cfg, cfg.sourceTextures2[i], i, false);
                   }
-                  if (cfg.clusterMode == TextureArrayConfig.ClusterMode.ThreeVariations)
+                  if (cfg.clusterMode == TextureArrayConfig.ClusterMode.ThreeVariations && !disableClusters)
                   {
                      DrawTextureEntry(cfg, cfg.sourceTextures3[i], i, false);
                   }
@@ -315,6 +410,12 @@ namespace JBooth.MicroSplat
                         Reset(cfg, i);
                      }
                   }
+
+                  if (cfg.antiTileArray)
+                  {
+                     DrawAntiTileEntry(cfg, cfg.sourceTextures[i], i);
+                  }
+
                   GUILayout.Box(Texture2D.blackTexture, GUILayout.Height(3), GUILayout.ExpandWidth(true));
                }
             }
@@ -326,6 +427,7 @@ namespace JBooth.MicroSplat
                   entry.aoChannel = cfg.sourceTextures[0].aoChannel;
                   entry.heightChannel = cfg.sourceTextures[0].heightChannel;
                   entry.smoothnessChannel = cfg.sourceTextures[0].smoothnessChannel;
+                  entry.alphaChannel = cfg.sourceTextures[0].alphaChannel;
                   cfg.sourceTextures.Add(entry);
                }
                else
@@ -334,11 +436,9 @@ namespace JBooth.MicroSplat
                   entry.aoChannel = TextureArrayConfig.TextureChannel.G;
                   entry.heightChannel = TextureArrayConfig.TextureChannel.G;
                   entry.smoothnessChannel = TextureArrayConfig.TextureChannel.G;
+                  entry.alphaChannel = TextureArrayConfig.TextureChannel.G;
                   cfg.sourceTextures.Add(entry);
                }
-
-
-
             }
          }
          if (GUILayout.Button("Grab From Scene Terrain"))
@@ -517,7 +617,7 @@ namespace JBooth.MicroSplat
                for (int tidx = 0; tidx < textures.Length; tidx++)
                {
                   ProceduralTexture pt = e.substance.GetGeneratedTexture(textures[tidx].name);
-
+                  
                   if (pt.GetProceduralOutputType() == ProceduralOutputType.Diffuse)
                   {
                      e.diffuse = BakeSubstance(path, pt, diffuseIsLinear);
@@ -555,11 +655,11 @@ namespace JBooth.MicroSplat
          bool diffuseIsLinear = QualitySettings.activeColorSpace == ColorSpace.Linear;
 
          PreprocessTextureEntries(cfg.sourceTextures, cfg, diffuseIsLinear);
-         if (cfg.clusterMode != TextureArrayConfig.ClusterMode.None)
+         if (cfg.clusterMode != TextureArrayConfig.ClusterMode.None && !cfg.IsAdvancedDetail())
          {
             PreprocessTextureEntries(cfg.sourceTextures2, cfg, diffuseIsLinear);
          }
-         if (cfg.clusterMode == TextureArrayConfig.ClusterMode.ThreeVariations)
+         if (cfg.clusterMode == TextureArrayConfig.ClusterMode.ThreeVariations && !cfg.IsAdvancedDetail())
          {
             PreprocessTextureEntries(cfg.sourceTextures3, cfg, diffuseIsLinear);
          }
@@ -589,9 +689,40 @@ namespace JBooth.MicroSplat
          return path.Replace(".asset", "_normSAO" + ext + "_tarray.asset");
       }
 
+      static string GetAntiTilePath(TextureArrayConfig cfg, string ext)
+      {
+         string path = AssetDatabase.GetAssetPath(cfg);
+         // create array path
+         path = path.Replace("\\", "/");
+         return path.Replace(".asset", "_antiTile" + ext + "_tarray.asset");
+      }
+
+      static int SizeToMipCount(int size)
+      {
+         int mips = 11;
+         if (size == 4096)
+            mips = 13;
+         else if (size == 2048)
+            mips = 12;
+         else if (size == 1024)
+            mips = 11;
+         else if (size == 512)
+            mips = 10;
+         else if (size == 256)
+            mips = 9;
+         else if (size == 128)
+            mips = 8;
+         else if (size == 64)
+            mips = 7;
+         else if (size == 32)
+            mips = 6;
+         return mips;
+      }
+
       static void CompileConfig(TextureArrayConfig cfg, 
                                 List<TextureArrayConfig.TextureEntry> src,
-                                string ext)
+                                string ext, 
+                                bool isCluster = false)
       {
          bool diffuseIsLinear = QualitySettings.activeColorSpace == ColorSpace.Linear;
 
@@ -599,31 +730,20 @@ namespace JBooth.MicroSplat
          int diffuseHeight = (int)cfg.diffuseTextureSize;
          int normalWidth = (int)cfg.normalSAOTextureSize;
          int normalHeight = (int)cfg.normalSAOTextureSize;
+         int antiTileWidth = (int)cfg.antiTileTextureSize;
+         int antiTileHeight = (int)cfg.antiTileTextureSize;
 
          int diffuseAnisoLevel = cfg.diffuseAnisoLevel;
          int normalAnisoLevel = cfg.normalAnisoLevel;
+         int antiTileAnisoLevel = cfg.antiTileAnisoLevel;
+
          FilterMode diffuseFilter = cfg.diffuseFilterMode;
          FilterMode normalFilter = cfg.normalFilterMode;
+         FilterMode antiTileFilter = cfg.antiTileFilterMode;
 
-         int diffuseMipCount = 11;
-         if (diffuseWidth == 2048)
-            diffuseMipCount = 12;
-         else if (diffuseWidth == 1024)
-            diffuseMipCount = 11;
-         else if (diffuseWidth == 512)
-            diffuseMipCount = 10;
-         else if (diffuseWidth == 256)
-            diffuseMipCount = 9;
-
-         int normalMipCount = 11;
-         if (normalWidth == 2048)
-            normalMipCount = 12;
-         else if (normalWidth == 1024)
-            normalMipCount = 11;
-         else if (normalWidth == 512)
-            normalMipCount = 10;
-         else if (normalWidth == 256)
-            normalMipCount = 9;
+         int diffuseMipCount = SizeToMipCount(diffuseWidth);
+         int normalMipCount = SizeToMipCount(normalWidth);
+         int antiTileMipCount = SizeToMipCount(antiTileWidth);
 
          int texCount = src.Count;
          if (texCount < 1)
@@ -646,6 +766,18 @@ namespace JBooth.MicroSplat
          normalSAOArray.filterMode = normalFilter;
          normalSAOArray.anisoLevel = normalAnisoLevel;
 
+         Texture2DArray antiTileArray = null;
+         if (!isCluster && cfg.antiTileArray)
+         {
+            antiTileArray = new Texture2DArray(antiTileWidth, antiTileHeight, texCount,
+               cfg.antiTileCompression == TextureArrayConfig.Compression.AutomaticCompressed ? GetTextureFormat() : TextureFormat.ARGB32,
+               true, true);
+
+            antiTileArray.wrapMode = TextureWrapMode.Repeat;
+            antiTileArray.filterMode = antiTileFilter;
+            antiTileArray.anisoLevel = antiTileAnisoLevel;
+         }
+
          for (int i = 0; i < src.Count; ++i)
          {
             try
@@ -664,9 +796,15 @@ namespace JBooth.MicroSplat
                // resulting maps
                Texture2D diffuseHeightTex = ResizeTexture(diffuse, diffuseWidth, diffuseHeight, diffuseIsLinear);
                Texture2D normalSAOTex = null;
+               Texture2D antiTileTex = null;
+
                int heightChannel = (int)e.heightChannel;
                int aoChannel = (int)e.aoChannel;
                int smoothChannel = (int)e.smoothnessChannel;
+               int alphaChannel = (int)e.alphaChannel;
+               int detailChannel = (int)e.detailChannel;
+               int distanceChannel = (int)e.distanceChannel;
+
                if (cfg.allTextureChannelHeight != TextureArrayConfig.AllTextureChannel.Custom)
                {
                   heightChannel = (int)cfg.allTextureChannelHeight;
@@ -678,6 +816,10 @@ namespace JBooth.MicroSplat
                if (cfg.allTextureChannelSmoothness != TextureArrayConfig.AllTextureChannel.Custom)
                {
                   smoothChannel = (int)cfg.allTextureChannelSmoothness;
+               }
+               if (cfg.allTextureChannelAlpha != TextureArrayConfig.AllTextureChannel.Custom)
+               {
+                  alphaChannel = (int)cfg.allTextureChannelAlpha;
                }
 
                if (e.normal == null)
@@ -697,6 +839,12 @@ namespace JBooth.MicroSplat
                   normalSAOTex = RenderMissingTexture(e.normal, "Hidden/MicroSplat/NormalSAOFromNormal", normalWidth, normalHeight);
                }
 
+
+               if (!isCluster && cfg.antiTileArray)
+               {
+                  antiTileTex = RenderMissingTexture(e.noiseNormal, "Hidden/MicroSplat/NormalSAOFromNormal", antiTileWidth, antiTileHeight);
+               }
+
                bool destroyHeight = false;
                Texture2D height = e.height;
                if (height == null)
@@ -708,7 +856,18 @@ namespace JBooth.MicroSplat
                MergeInChannel(diffuseHeightTex, (int)TextureArrayConfig.TextureChannel.A, height, heightChannel, diffuseIsLinear);
 
 
-               if (e.ao != null)
+               if (cfg.IsAdvancedDetail())
+               {
+                  if (e.alpha != null)
+                  {
+                     MergeInChannel(normalSAOTex, (int)TextureArrayConfig.TextureChannel.B, e.alpha, alphaChannel, true);
+                  }
+                  else
+                  {
+                     MergeInChannel(normalSAOTex, (int)TextureArrayConfig.TextureChannel.B, Texture2D.whiteTexture, 0, true);
+                  }
+               }
+               else if (e.ao != null)
                {
                   MergeInChannel(normalSAOTex, (int)TextureArrayConfig.TextureChannel.B, e.ao, aoChannel, true);
                }
@@ -716,6 +875,41 @@ namespace JBooth.MicroSplat
                if (e.smoothness != null)
                {
                   MergeInChannel(normalSAOTex, (int)TextureArrayConfig.TextureChannel.R, e.smoothness, smoothChannel, true, e.isRoughness);
+               }
+
+               if (!isCluster && cfg.antiTileArray && antiTileTex != null)
+               {
+                  Texture2D detail = e.detailNoise;
+                  Texture2D distance = e.distanceNoise;
+                  bool destroyDetail = false;
+                  bool destroyDistance = false;
+                  if (detail == null)
+                  {
+                     detail = new Texture2D(1, 1);
+                     detail.SetPixel(0, 0, Color.grey);
+                     detail.Apply();
+                     destroyDetail = true;
+                     detailChannel = (int)TextureArrayConfig.TextureChannel.G;
+                  }
+                  if (distance == null)
+                  {
+                     distance = new Texture2D(1, 1);
+                     distance.SetPixel(0, 0, Color.grey);
+                     distance.Apply();
+                     destroyDistance = true;
+                     distanceChannel = (int)TextureArrayConfig.TextureChannel.G;
+                  }
+                  MergeInChannel(antiTileTex, (int)TextureArrayConfig.TextureChannel.R, detail, detailChannel, true, false);
+                  MergeInChannel(antiTileTex, (int)TextureArrayConfig.TextureChannel.B, distance, distanceChannel, true, false);
+
+                  if (destroyDetail)
+                  {
+                     GameObject.DestroyImmediate(detail);
+                  }
+                  if (destroyDistance)
+                  {
+                     GameObject.DestroyImmediate(distance);
+                  }
                }
 
 
@@ -729,8 +923,17 @@ namespace JBooth.MicroSplat
                   EditorUtility.CompressTexture(diffuseHeightTex, GetTextureFormat(), TextureCompressionQuality.Normal);
                }
 
+               if (antiTileTex != null && cfg.antiTileCompression != TextureArrayConfig.Compression.Uncompressed)
+               {
+                  EditorUtility.CompressTexture(antiTileTex, GetTextureFormat(), TextureCompressionQuality.Normal);
+               }
+
                normalSAOTex.Apply();
                diffuseHeightTex.Apply();
+               if (antiTileTex != null)
+               {
+                  antiTileTex.Apply();
+               }
 
                for (int mip = 0; mip < diffuseMipCount; ++mip)
                {
@@ -740,12 +943,27 @@ namespace JBooth.MicroSplat
                {
                   Graphics.CopyTexture(normalSAOTex, 0, mip, normalSAOArray, i, mip);
                }
+               if (antiTileTex != null)
+               {
+                  for (int mip = 0; mip < antiTileMipCount; ++mip)
+                  {
+                     Graphics.CopyTexture(antiTileTex, 0, mip, antiTileArray, i, mip);
+                  }
+               }
                DestroyImmediate(diffuseHeightTex);
                DestroyImmediate(normalSAOTex);
+
+               if (antiTileTex != null)
+               {
+                  DestroyImmediate(antiTileTex);
+               }
+
                if (destroyHeight)
                {
                   DestroyImmediate(height);
                }
+
+
             }
             finally
             {
@@ -757,9 +975,15 @@ namespace JBooth.MicroSplat
 
          diffuseArray.Apply(false, true);
          normalSAOArray.Apply(false, true);
+         if (antiTileArray != null)
+         {
+            antiTileArray.Apply(false, true);
+         }
 
          string diffPath = GetDiffPath(cfg, ext);
          string normSAOPath = GetNormPath(cfg, ext);
+         string antiTilePath = GetAntiTilePath(cfg, ext);
+
          {
             var existing = AssetDatabase.LoadAssetAtPath<Texture2DArray>(diffPath);
             if (existing != null)
@@ -784,6 +1008,19 @@ namespace JBooth.MicroSplat
             }
          }
 
+         if (cfg.antiTileArray && antiTileArray != null)
+         {
+            var existing = AssetDatabase.LoadAssetAtPath<Texture2DArray>(antiTilePath);
+            if (existing != null)
+            {
+               EditorUtility.CopySerialized(antiTileArray, existing);
+            }
+            else
+            {
+               AssetDatabase.CreateAsset(antiTileArray, antiTilePath);
+            }
+         }
+
          EditorUtility.SetDirty(cfg);
          AssetDatabase.Refresh();
          AssetDatabase.SaveAssets();
@@ -798,14 +1035,14 @@ namespace JBooth.MicroSplat
 
          PreprocessTextureEntries(cfg);
 
-         CompileConfig(cfg, cfg.sourceTextures, "");
-         if (cfg.clusterMode != TextureArrayConfig.ClusterMode.TwoVariations)
+         CompileConfig(cfg, cfg.sourceTextures, "", false);
+         if (cfg.clusterMode != TextureArrayConfig.ClusterMode.None)
          {
-            CompileConfig(cfg, cfg.sourceTextures2, "_C2");
+            CompileConfig(cfg, cfg.sourceTextures2, "_C2", true);
          }
          if (cfg.clusterMode == TextureArrayConfig.ClusterMode.ThreeVariations)
          {
-            CompileConfig(cfg, cfg.sourceTextures3, "_C3");
+            CompileConfig(cfg, cfg.sourceTextures3, "_C3", true);
          }
 
 

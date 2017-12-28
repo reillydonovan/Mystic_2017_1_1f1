@@ -17,6 +17,8 @@ public partial class MicroSplatTerrainEditor : Editor
    static GUIContent CVSGrassMap = new GUIContent("Grass Map", "Grass Map from Vegetation Studio");
    static GUIContent CVSShadowMap = new GUIContent("Shadow Map", "Shadow map texture from Vegetation Studio");
 
+   static GUIContent AdvDetailControl = new GUIContent("Advanced Detail Control", "Control map for Advanced Details"); 
+
    public override void OnInspectorGUI()
    {
       MicroSplatTerrain t = target as MicroSplatTerrain;
@@ -138,39 +140,15 @@ public partial class MicroSplatTerrainEditor : Editor
 
       // could move this to some type of interfaced component created by the module if this becomes a thing,
       // but I think this will be most of the cases?
-      if (t.templateMaterial.IsKeywordEnabled("_GEOMAP"))
-      {
-         EditorGUI.BeginChangeCheck();
+      
+      MicroSplatUtilities.DrawTextureField(t, geoTexOverride, ref t.geoTextureOverride, "_GEOMAP");
 
-         t.geoTextureOverride = EditorGUILayout.ObjectField(geoTexOverride, t.geoTextureOverride, typeof(Texture2D), false) as Texture2D;
+      MicroSplatUtilities.DrawTextureField(t, geoTintOverride, ref t.tintMapOverride, "_GLOBALTINT");
 
-         if (EditorGUI.EndChangeCheck())
-         {
-            EditorUtility.SetDirty(t);
-         }
-      }
-      if (t.templateMaterial.IsKeywordEnabled("_GLOBALTINT"))
-      {
-         EditorGUI.BeginChangeCheck();
+      MicroSplatUtilities.DrawTextureField(t, geoNormalOverride, ref t.globalNormalOverride, "_GLOBALNORMALS");
 
-         t.tintMapOverride = EditorGUILayout.ObjectField(geoTintOverride, t.tintMapOverride, typeof(Texture2D), false) as Texture2D;
+      MicroSplatUtilities.DrawTextureField(t, AdvDetailControl, ref t.advDetailControl, "_ADVANCED_DETAIL");
 
-         if (EditorGUI.EndChangeCheck())
-         {
-            EditorUtility.SetDirty(t);
-         }
-      }
-      if (t.templateMaterial.IsKeywordEnabled("_GLOBALNORMALS"))
-      {
-         EditorGUI.BeginChangeCheck();
-
-         t.globalNormalOverride = EditorGUILayout.ObjectField(geoNormalOverride, t.globalNormalOverride, typeof(Texture2D), false) as Texture2D;
-
-         if (EditorGUI.EndChangeCheck())
-         {
-            EditorUtility.SetDirty(t);
-         }
-      }
 
       if (t.templateMaterial.IsKeywordEnabled("_VSGRASSMAP"))
       {

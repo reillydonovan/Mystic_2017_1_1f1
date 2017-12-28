@@ -48,8 +48,10 @@ public class MicroSplatTerrain : MonoBehaviour
    public Texture2D vsGrassMap;
    [HideInInspector]
    public Texture2D vsShadowMap;
-
    [HideInInspector]
+   public Texture2D advDetailControl;
+
+    [HideInInspector]
    public MicroSplatPropData propData;
 
    #if UNITY_EDITOR
@@ -58,6 +60,10 @@ public class MicroSplatTerrain : MonoBehaviour
    [HideInInspector]
    public float oldBaseMapDistance;
    #endif
+
+   // LOTS of hacking around Unity bugs. In some versions of Unity, accessing any data on the terrain too early can cause a crash, either
+   // in editor, or in playmode, but not in the same way. Really just want to call Sync on Enabled, and Cleanup on Disabled, but triggers
+   // too many issues, so we dodge the bullet in various cases to hack around it- so ugly.
 
    void Awake()
    {
@@ -73,6 +79,11 @@ public class MicroSplatTerrain : MonoBehaviour
       sInstances.Add(this);
       #if UNITY_EDITOR
       Sync();
+      #else
+      if (reenabled)
+      {
+         Sync();
+      }
       #endif
    }
 
@@ -83,10 +94,13 @@ public class MicroSplatTerrain : MonoBehaviour
    }
    #endif
 
+   [HideInInspector]
+   public bool reenabled = false;
    void OnDisable()
    {
       sInstances.Remove(this);
       Cleanup();
+      reenabled = true;
    }
 
    #if UNITY_EDITOR
@@ -186,6 +200,10 @@ public class MicroSplatTerrain : MonoBehaviour
       if (m.HasProperty("_StreamControl"))
       {
          m.SetTexture("_StreamControl", streamTexture);
+      }
+      if (m.IsKeywordEnabled("_ADVANCED_DETAIL"))
+      {
+         m.SetTexture("_AdvDetailControl", advDetailControl);
       }
 
       if (propData != null)

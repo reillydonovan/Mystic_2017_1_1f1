@@ -13,7 +13,7 @@ using System.Linq;
 
 public partial class MicroSplatShaderGUI : ShaderGUI 
 {
-   public static readonly string MicroSplatVersion = "1.6";
+   public static readonly string MicroSplatVersion = "1.7";
 
    MicroSplatCompiler compiler = new MicroSplatCompiler();
 

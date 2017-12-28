@@ -119,9 +119,17 @@ namespace JBooth.MicroSplat
 
 
       // Can we template these somehow?
+      static Dictionary<DefineFeature, string> sFeatureNames = new Dictionary<DefineFeature, string>();
       public static string GetFeatureName(DefineFeature feature)
       {
-         return System.Enum.GetName(typeof(DefineFeature), feature);
+         string ret;
+         if (sFeatureNames.TryGetValue(feature, out ret))
+         {
+            return ret;
+         }
+         string fn = System.Enum.GetName(typeof(DefineFeature), feature);
+         sFeatureNames[feature] = fn;
+         return fn;
       }
 
       public static bool HasFeature(string[] keywords, DefineFeature feature)
@@ -137,7 +145,7 @@ namespace JBooth.MicroSplat
 
       public override string GetVersion()
       {
-         return "1.6";
+         return "1.7";
       }
 
       public override void DrawFeatureGUI(Material mat)
@@ -456,19 +464,19 @@ namespace JBooth.MicroSplat
             features.Add(GetFeatureName(DefineFeature._RAINDROPS));
          }
 
-         if (globalWetness)
+         if (globalWetness && wetness)
          {
             features.Add(GetFeatureName(DefineFeature._GLOBALWETNESS));
          }
-         if (globalStreams)
+         if (globalStreams && streams)
          {
             features.Add(GetFeatureName(DefineFeature._GLOBALSTREAMS));
          }
-         if (globalPuddles)
+         if (globalPuddles && puddles)
          {
             features.Add(GetFeatureName(DefineFeature._GLOBALPUDDLES));
          }
-         if (globalRain)
+         if (globalRain && puddles)
          {
             features.Add(GetFeatureName(DefineFeature._GLOBALRAIN));
          }

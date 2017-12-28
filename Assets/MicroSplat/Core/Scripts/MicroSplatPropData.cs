@@ -14,6 +14,10 @@ using UnityEngine;
 // 8 Snow (R), Glitter
 // 9 Triplanar, trplanar contrast
 // 10 Texture Cluster Contrast, boost
+// 11 Advanced Detail UV Scale/Offset
+// 12 Advanced Detail (G)Normal Blend, (B)Tex Overlay
+// 13 Advanced Detail (R)Contrast, (G) AngleContrast, (B)HeightConttast
+// 14 AntiTileArray (R)Normal Str, (G) Detail Strength, (B) Distance Strength
 
 // because unity's HDR import pipeline is broke (assumes gamma, so breaks data in textures)
 public class MicroSplatPropData : ScriptableObject 

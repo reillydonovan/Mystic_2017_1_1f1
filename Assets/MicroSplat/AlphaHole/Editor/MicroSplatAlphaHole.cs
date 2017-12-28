@@ -51,9 +51,17 @@ namespace JBooth.MicroSplat
       GUIContent CAlphaHole = new GUIContent("Alpha Hole", "Paint areas which are transparent");
       GUIContent CAlphaBelowHeight = new GUIContent("Alpha Water Level", "Clip any area below this level");
       // Can we template these somehow?
+      static Dictionary<DefineFeature, string> sFeatureNames = new Dictionary<DefineFeature, string>();
       public static string GetFeatureName(DefineFeature feature)
       {
-         return System.Enum.GetName(typeof(DefineFeature), feature);
+         string ret;
+         if (sFeatureNames.TryGetValue(feature, out ret))
+         {
+            return ret;
+         }
+         string fn = System.Enum.GetName(typeof(DefineFeature), feature);
+         sFeatureNames[feature] = fn;
+         return fn;
       }
 
       public static bool HasFeature(string[] keywords, DefineFeature feature)
@@ -72,7 +80,7 @@ namespace JBooth.MicroSplat
 
       public override string GetVersion()
       {
-         return "1.6";
+         return "1.7";
       }
 
       public override void DrawFeatureGUI(Material mat)

@@ -1,0 +1,15 @@
+
+      float2 _AlphaData;
+
+      void ClipWaterLevel(float3 worldPos)
+      {
+         clip(worldPos.y - _AlphaData.y);
+      }
+
+      void ClipAlphaHole(float i)
+      {
+         if ((int)round(i) == (int)round(_AlphaData.x))
+         {
+            clip(-1);
+         }
+      }

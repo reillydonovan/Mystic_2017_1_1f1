@@ -13,7 +13,7 @@ public partial class MicroSplatTerrainEditor : Editor
       Terrain t = bt.GetComponent<Terrain>();
       int w = t.terrainData.heightmapWidth;
       int h = t.terrainData.heightmapHeight;
-
+     
       Texture2D data = new Texture2D(w, h, TextureFormat.RGBAHalf, true, true);
       for (int x = 0; x < w; ++x)
       {
@@ -21,10 +21,16 @@ public partial class MicroSplatTerrainEditor : Editor
          {
             float height = t.terrainData.GetHeight(x, y);
             Vector3 normal = t.terrainData.GetInterpolatedNormal((float)x / w, (float)y / h);
+            // When you save a texture to EXR format, either in the saving or import stage,
+            // some type of gamma curve is applied regardless of the fact that the textures is
+            // set to linear. So we pow it here to counteract it, whis is total BS, but works..
+            normal.x = (normal.x >= 0) ? Mathf.Pow(normal.x, 2.0f) : Mathf.Pow(normal.x, 2) * -1;
+            normal.z = (normal.z >= 0) ? Mathf.Pow(normal.z, 2.0f) : Mathf.Pow(normal.z, 2) * -1;
             data.SetPixel(x, y, new Color(normal.x, normal.y, normal.z, height));
          }
       }
       data.Apply();
+
       var path = MicroSplatUtilities.RelativePathFromAsset(t.terrainData);
       path += "/" + t.name + ".exr";
       var bytes = data.EncodeToEXR(Texture2D.EXRFlags.OutputAsFloat);
@@ -36,7 +42,7 @@ public partial class MicroSplatTerrainEditor : Editor
       var ti = ai as TextureImporter;
       var ps = ti.GetDefaultPlatformTextureSettings();
 
-      if (ti.isReadable == false || 
+      if (ti.isReadable == true || 
          ti.wrapMode != TextureWrapMode.Clamp ||
          ps.format != TextureImporterFormat.RGBAHalf ||
          ps.textureCompression != TextureImporterCompression.Uncompressed ||
@@ -48,7 +54,7 @@ public partial class MicroSplatTerrainEditor : Editor
          ti.filterMode = FilterMode.Bilinear;
          ti.mipmapEnabled = true;
          ti.wrapMode = TextureWrapMode.Clamp;
-         ti.isReadable = true;
+         ti.isReadable = false;
          ps.format = TextureImporterFormat.RGBAHalf;
          ps.textureCompression = TextureImporterCompression.Uncompressed;
          ps.overridden = true;

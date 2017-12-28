@@ -63,9 +63,17 @@ namespace JBooth.MicroSplat
       GUIContent CDistanceNoise = new GUIContent("Noise", "A mostly greyscale linear texture with the center around 0.5");
 
       // Can we template these somehow?
+      static Dictionary<SnowDefineFeature, string> sFeatureNames = new Dictionary<SnowDefineFeature, string>();
       public static string GetFeatureName(SnowDefineFeature feature)
       {
-         return System.Enum.GetName(typeof(SnowDefineFeature), feature);
+         string ret;
+         if (sFeatureNames.TryGetValue(feature, out ret))
+         {
+            return ret;
+         }
+         string fn = System.Enum.GetName(typeof(SnowDefineFeature), feature);
+         sFeatureNames[feature] = fn;
+         return fn;
       }
 
       public static bool HasFeature(string[] keywords, SnowDefineFeature feature)
@@ -81,7 +89,7 @@ namespace JBooth.MicroSplat
 
       public override string GetVersion()
       {
-         return "1.6";
+         return "1.7";
       }
 
       public override void DrawFeatureGUI(Material mat)

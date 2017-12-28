@@ -17,7 +17,7 @@ public partial class MicroSplatShaderGUI : ShaderGUI
    static TextAsset sharedInc;
    static TextAsset terrainBlendBody;
 
-   const string declareTerrain        = "      #pragma surface surf Standard vertex:vert fullforwardshadows";
+   const string declareTerrain        = "      #pragma surface surf Standard vertex:vert fullforwardshadows addshadow";
    const string declareTerrainDebug   = "      #pragma surface surf Unlit vertex:vert nofog";
    const string declareTerrainTess    = "      #pragma surface surf Standard vertex:disp tessellate:TessDistance fullforwardshadows addshadow";
 

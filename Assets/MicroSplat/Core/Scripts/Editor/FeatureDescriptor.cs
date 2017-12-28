@@ -127,20 +127,32 @@ namespace JBooth.MicroSplat
          A
       }
 
+      static bool drawPertexToggle = true;
+      static protected int noPerTexToggleWidth = 20;
+
       bool PerTexToggle(Material mat, string keyword)
       {
-         bool enabled = mat.IsKeywordEnabled(keyword);
-         bool newEnabled = EditorGUILayout.Toggle(enabled, GUILayout.Width(20));
-         if (enabled != newEnabled)
+         if (drawPertexToggle)
          {
-            if (newEnabled)
-               mat.EnableKeyword(keyword);
-            else
-               mat.DisableKeyword(keyword);
+            bool enabled = mat.IsKeywordEnabled(keyword);
+            bool newEnabled = EditorGUILayout.Toggle(enabled, GUILayout.Width(20));
+            if (enabled != newEnabled)
+            {
+               if (newEnabled)
+                  mat.EnableKeyword(keyword);
+               else
+                  mat.DisableKeyword(keyword);
+            }
+            return newEnabled;
          }
-         return newEnabled;
+         else
+         {
+            EditorGUILayout.LabelField("", GUILayout.Width(noPerTexToggleWidth));
+            drawPertexToggle = true;
+            return mat.IsKeywordEnabled(keyword);
+         }
       }
-         
+
       protected void InitPropData(int pixel, MicroSplatPropData propData, Color defaultValues)
       {
          if (propData == null)
@@ -197,64 +209,6 @@ namespace JBooth.MicroSplat
          return enabled;
       }
 
-      protected void DrawPerTexColorNoToggle(int curIdx, int pixel, MicroSplatPropData propData, GUIContent label)
-      {
-         EditorGUILayout.BeginHorizontal();
-         EditorGUILayout.LabelField("", GUILayout.Width(20));
-         Color c = propData.GetValue(curIdx, pixel);
-         Color nv = EditorGUILayout.ColorField(label, c);
-         if (nv != c)
-         {
-            propData.SetValue(curIdx, pixel, nv);
-         }
-
-         if (GUILayout.Button("All", GUILayout.Width(40)))
-         {
-            for (int i = 0; i < 16; ++i)
-            {
-               propData.SetValue(i, pixel, nv);
-            }
-         }
-
-         EditorGUILayout.EndHorizontal();
-      }
-
-      protected void DrawPerTexFloatSliderNoToggle(int curIdx, int pixel, string keyword, Material mat, MicroSplatPropData propData, Channel channel, 
-         GUIContent label, float min = 0, float max = 0)
-      {
-         EditorGUILayout.BeginHorizontal();
-         EditorGUILayout.LabelField("", GUILayout.Width(20));
-         bool enabled = mat.IsKeywordEnabled(keyword);
-         GUI.enabled = enabled;
-
-         Color c = propData.GetValue(curIdx, pixel);
-         float v = c[(int)channel];
-         float nv = v;
-         if (min != max)
-         {
-            nv = EditorGUILayout.Slider(label, v, min, max);
-         }
-         else
-         {
-            nv = EditorGUILayout.FloatField(label, v);
-         }
-         if (nv != v)
-         {
-            c[(int)channel] = nv;
-            propData.SetValue(curIdx, pixel, c);
-         }
-
-         if (GUILayout.Button("All", GUILayout.Width(40)))
-         {
-            for (int i = 0; i < 16; ++i)
-            {
-               propData.SetValue(i, pixel, (int)channel, nv);
-            }
-         }
-
-         GUI.enabled = true;
-         EditorGUILayout.EndHorizontal();
-      }
 
       protected enum V2Cannel
       {
@@ -319,7 +273,6 @@ namespace JBooth.MicroSplat
 
          return enabled;
       }
-
 
       protected bool DrawPerTexVector2Vector2(int curIdx, int pixel, string keyword, Material mat, MicroSplatPropData propData,
          GUIContent label, GUIContent label2)
@@ -400,6 +353,53 @@ namespace JBooth.MicroSplat
          return enabled;
       }
       GUIStyle globalButtonPressedStyle = null;
+
+
+      protected void DrawPerTexVector2NoToggle(int curIdx, int pixel, string keyword, Material mat, MicroSplatPropData propData, V2Cannel channel,
+        GUIContent label)
+      {
+         drawPertexToggle = false;
+         DrawPerTexVector2(curIdx, pixel, keyword, mat, propData, channel, label);
+      }
+
+      protected void DrawPerTexVector2Vector2NoToggle(int curIdx, int pixel, string keyword, Material mat, MicroSplatPropData propData,
+         GUIContent label, GUIContent label2)
+      {
+         drawPertexToggle = false;
+         DrawPerTexVector2Vector2(curIdx, pixel, keyword, mat, propData, label, label2);
+      }
+
+      protected void DrawPerTexFloatSliderNoToggle(int curIdx, int pixel, string keyword, Material mat, MicroSplatPropData propData, Channel channel,
+         GUIContent label, float min = 0, float max = 0)
+      {
+         drawPertexToggle = false;
+         DrawPerTexFloatSlider(curIdx, pixel, keyword, mat, propData, channel, label, min, max);
+      }
+
+      protected void DrawPerTexColorNoToggle(int curIdx, int pixel, MicroSplatPropData propData, GUIContent label)
+      {
+         EditorGUILayout.BeginHorizontal();
+         EditorGUILayout.LabelField("", GUILayout.Width(20));
+         Color c = propData.GetValue(curIdx, pixel);
+         Color nv = EditorGUILayout.ColorField(label, c);
+         if (nv != c)
+         {
+            propData.SetValue(curIdx, pixel, nv);
+         }
+
+         if (GUILayout.Button("All", GUILayout.Width(40)))
+         {
+            for (int i = 0; i < 16; ++i)
+            {
+               propData.SetValue(i, pixel, nv);
+            }
+         }
+
+         EditorGUILayout.EndHorizontal();
+         drawPertexToggle = true;
+      }
+
+
 
       static GUIContent globalButton = new GUIContent("G", "Make property driven by a global variable. Used to integrate with external weathering systems");
       protected bool DrawGlobalToggle(string keyword, Material mat)

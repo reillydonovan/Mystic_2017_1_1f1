@@ -67,7 +67,20 @@ namespace JBooth.MicroSplat
          return null;
       }
 
+      public static void DrawTextureField(MicroSplatTerrain t, GUIContent content, ref Texture2D tex, string keword )
+      {
+          if (t.templateMaterial.IsKeywordEnabled(keword))
+          {
+              EditorGUI.BeginChangeCheck();
 
+              tex = EditorGUILayout.ObjectField(content, tex, typeof(Texture2D), false) as Texture2D;
+
+              if (EditorGUI.EndChangeCheck())
+              {
+                    EditorUtility.SetDirty(t);
+              }
+          }
+      }
 
 
       static Dictionary<string, bool> rolloutStates = new Dictionary<string, bool>();
@@ -104,7 +117,13 @@ namespace JBooth.MicroSplat
          return rolloutStates[text];
       }
 
-
+      public static void DrawSeparator()
+      {
+         EditorGUILayout.Separator();
+         GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(1) });
+         EditorGUILayout.Separator();
+      }
+     
       static List<TextureArrayPreviewCache> previewCache = new List<TextureArrayPreviewCache>(16);
 
       static Texture2D FindInPreviewCache(int hash)

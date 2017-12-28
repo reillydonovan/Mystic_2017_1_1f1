@@ -45,6 +45,8 @@ namespace JBooth.MicroSplat
          _BDRF1,
          _BDRF2,
          _BDRF3,
+         _USELODMIP,
+         _USEGRADMIP,
          _DISABLEHEIGHTBLENDING,
          _WORLDUV,
          _FORCEMODEL46,
@@ -108,6 +110,13 @@ namespace JBooth.MicroSplat
          Force50
       }
 
+      public enum SamplerMode
+      {
+         Default,
+         LODSampler,
+         GradientSampler
+      }
+
       // state for the shader generation
       public PerformanceMode perfMode = PerformanceMode.BestQuality;
       public MaxTextureCount maxTextureCount = MaxTextureCount.Sixteen;
@@ -126,6 +135,7 @@ namespace JBooth.MicroSplat
       public LightingMode lightingMode;
       public DebugOutput debugOutput = DebugOutput.None;
       public ShaderModel shaderModel = ShaderModel.Automatic;
+      public SamplerMode samplerMode = SamplerMode.Default;
 
       // files to include
       static TextAsset properties_splat;
@@ -138,11 +148,20 @@ namespace JBooth.MicroSplat
       GUIContent CDisableHeightBlend = new GUIContent("Disable Height Blending", "Disables height based blending, which can be a speed boost on low end platforms");
       GUIContent CUVMode = new GUIContent("UV Mode", "Mode for Splat UV coordinates");
       GUIContent CForceShaderModel = new GUIContent("Shader Model", "Force a specific shader model to be used. By default, MicroSplat will use the minimum required");
+      GUIContent CSamplerMode = new GUIContent("Sampler Mode", "Force usage of manual mip selection in the shader (fast) or gradient samplers (slow). Mostly only used when PerTexture UV Scale is used. See documentation for more info");
 
       // Can we template these somehow?
+      static Dictionary<DefineFeature, string> sFeatureNames = new Dictionary<DefineFeature, string>();
       public static string GetFeatureName(DefineFeature feature)
       {
-         return System.Enum.GetName(typeof(DefineFeature), feature);
+         string ret;
+         if (sFeatureNames.TryGetValue(feature, out ret))
+         {
+            return ret;
+         }
+         string fn = System.Enum.GetName(typeof(DefineFeature), feature);
+         sFeatureNames[feature] = fn;
+         return fn;
       }
 
       public static bool HasFeature(string[] keywords, DefineFeature feature)
@@ -173,6 +192,7 @@ namespace JBooth.MicroSplat
          lightingMode = (LightingMode)EditorGUILayout.EnumPopup(CLightingMode, lightingMode);
          uvMode = (UVMode)EditorGUILayout.EnumPopup(CUVMode, uvMode);
          shaderModel = (ShaderModel)EditorGUILayout.EnumPopup(CForceShaderModel, shaderModel);
+         samplerMode = (SamplerMode)EditorGUILayout.EnumPopup(CSamplerMode, samplerMode);
          disableHeightBlend = EditorGUILayout.Toggle(CDisableHeightBlend, disableHeightBlend);
          //debugOutput = (DebugOutput)EditorGUILayout.EnumPopup("Debug", debugOutput);
       }
@@ -223,7 +243,14 @@ namespace JBooth.MicroSplat
          List<string> features = new List<string>();
          features.Add(GetFeatureName(DefineFeature._MICROSPLAT));
 
-
+         if (samplerMode == SamplerMode.LODSampler)
+         {
+            features.Add(GetFeatureName(DefineFeature._USELODMIP));
+         }
+         else if (samplerMode == SamplerMode.GradientSampler)
+         {
+            features.Add(GetFeatureName(DefineFeature._USEGRADMIP));
+         }
 
          if (perfMode == PerformanceMode.Balanced)
          {
@@ -364,6 +391,16 @@ namespace JBooth.MicroSplat
          else
          {
             perfMode = PerformanceMode.BestQuality;
+         }
+
+         samplerMode = SamplerMode.Default;
+         if (HasFeature(keywords, DefineFeature._USELODMIP))
+         {
+            samplerMode = SamplerMode.LODSampler;
+         }
+         else if (HasFeature(keywords, DefineFeature._USEGRADMIP))
+         {
+            samplerMode = SamplerMode.GradientSampler;
          }
 
          uvMode = HasFeature(keywords, DefineFeature._WORLDUV) ? UVMode.WorldSpace : UVMode.UV;
@@ -507,6 +544,11 @@ namespace JBooth.MicroSplat
          InitPropData(1, propData, new Color(1.0f, 1.0f, 1.0f, 0.0f)); // tint, interp contrast
          InitPropData(2, propData, new Color(1.0f, 0.0f, 1.0f, 0.0f)); // norm str, smooth str, ao str, metal values
          InitPropData(3, propData, new Color(0.0f, 1.0f, 0.4f, 1.0f)); // brightness, contrast, porosity, foam
+
+         if (perTexUVScale && samplerMode == SamplerMode.Default)
+         {
+            EditorGUILayout.HelpBox("On some GPUs, small artifacts can appear with per-texture UV scales. Switching sampler mode to Mip (fast) or Gradient (slow) will fix the issue", MessageType.Info);
+         }
 
          perTexUVScale = DrawPerTexVector2Vector2(index, 0, GetFeatureName(DefineFeature._PERTEXUVSCALEOFFSET), 
             mat, propData, CPerTexUV, CPerTexUVOffset);

@@ -3,9 +3,9 @@
 // Copyright (c) Jason Booth, slipster216@gmail.com
 //////////////////////////////////////////////////////
 
-using UnityEngine;
-using System.Collections;
+
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace JBooth.MicroSplat
 {
@@ -39,6 +39,7 @@ namespace JBooth.MicroSplat
 
       public enum TextureSize
       {
+         k4096 = 4096,
          k2048 = 2048,
          k1024 = 1024,
          k512 = 512,
@@ -52,7 +53,10 @@ namespace JBooth.MicroSplat
       public enum TextureMode
       {
          Basic,
-         PBR
+         PBR,
+         #if __MICROSPLAT_ADVANCED_DETAIL__
+         AdvancedDetails,
+         #endif
       }
 
       public enum ClusterMode
@@ -62,8 +66,20 @@ namespace JBooth.MicroSplat
          ThreeVariations
       }
 
+      public bool IsAdvancedDetail()
+      {
+      #if __MICROSPLAT_ADVANCED_DETAIL__
+         return textureMode == TextureMode.AdvancedDetails;
+      #else
+         return false;
+      #endif
+      }
+         
       [HideInInspector]
-      public TextureMode textureMode = TextureMode.Basic;
+      public bool antiTileArray = false;
+
+      [HideInInspector]
+      public TextureMode textureMode = TextureMode.Basic;   
 
       [HideInInspector]
       public ClusterMode clusterMode = ClusterMode.None;
@@ -147,8 +163,7 @@ namespace JBooth.MicroSplat
       public Texture2DArray diffuseArray3;
       [HideInInspector]
       public Texture2DArray normalSAOArray3;
-
-
+      
       public TextureSize diffuseTextureSize = TextureSize.k1024;
       public Compression diffuseCompression = Compression.AutomaticCompressed;
       public FilterMode diffuseFilterMode = FilterMode.Bilinear;
@@ -159,6 +174,10 @@ namespace JBooth.MicroSplat
       public FilterMode normalFilterMode = FilterMode.Trilinear;
       public int normalAnisoLevel = 1;
 
+      public TextureSize antiTileTextureSize = TextureSize.k1024;
+      public Compression antiTileCompression = Compression.AutomaticCompressed;
+      public FilterMode antiTileFilterMode = FilterMode.Trilinear;
+      public int antiTileAnisoLevel = 1;
 
 
       [HideInInspector]
@@ -167,6 +186,9 @@ namespace JBooth.MicroSplat
       public AllTextureChannel allTextureChannelSmoothness = AllTextureChannel.G;
       [HideInInspector]
       public AllTextureChannel allTextureChannelAO = AllTextureChannel.G;
+      [HideInInspector]     
+      public AllTextureChannel allTextureChannelAlpha = AllTextureChannel.A;
+
 
       [System.Serializable]
       public class TextureEntry
@@ -180,7 +202,16 @@ namespace JBooth.MicroSplat
          public TextureChannel smoothnessChannel = TextureChannel.G;
          public bool isRoughness;
          public Texture2D ao;
-         public TextureChannel aoChannel = TextureChannel.G;
+         public TextureChannel aoChannel = TextureChannel.G;       
+         public Texture2D alpha;
+         public TextureChannel alphaChannel = TextureChannel.G;         
+
+         // anti tile
+         public Texture2D noiseNormal;
+         public Texture2D detailNoise;
+         public TextureChannel detailChannel = TextureChannel.G;      
+         public Texture2D distanceNoise;
+         public TextureChannel distanceChannel = TextureChannel.G;      
 
          public void Reset()
          {
@@ -191,9 +222,15 @@ namespace JBooth.MicroSplat
             smoothness = null;
             ao = null;
             isRoughness = false;
+            alpha = null;
+            detailNoise = null;
+            distanceNoise = null;
             heightChannel = TextureChannel.G;
             smoothnessChannel = TextureChannel.G;
             aoChannel = TextureChannel.G;
+            alphaChannel = TextureChannel.G;
+            distanceChannel = TextureChannel.G;
+            detailChannel = TextureChannel.G;
          }
 
          public bool HasTextures()
