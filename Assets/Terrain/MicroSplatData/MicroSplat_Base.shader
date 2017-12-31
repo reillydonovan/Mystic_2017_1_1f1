@@ -8,12 +8,10 @@
 //   Platform : WindowsEditor
 //////////////////////////////////////////////////////
 
-Shader "Hidden/MicroSplat/IceCoreTerrain_Base408879058" {
+Shader "Hidden/MicroSplat/IceCoreTerrain_Base345535484" {
    Properties {
       [HideInInspector] _Control0 ("Control0", 2D) = "red" {}
       [HideInInspector] _Control1 ("Control1", 2D) = "black" {}
-      [HideInInspector] _Control2 ("Control2", 2D) = "black" {}
-      [HideInInspector] _Control3 ("Control3", 2D) = "black" {}
       
 
       // Splats
@@ -71,6 +69,7 @@ Shader "Hidden/MicroSplat/IceCoreTerrain_Base408879058" {
 
       #define _ALPHAHOLE 1
       #define _MAX2LAYER 1
+      #define _MAX8TEXTURES 1
       #define _MICROSPLAT 1
       #define _PUDDLES 1
       #define _RAINDROPS 1
