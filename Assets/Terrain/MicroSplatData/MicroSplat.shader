@@ -3,12 +3,12 @@
 // Copyright (c) Jason Booth
 //
 // Auto-generated shader code, don't hand edit!
-//   Compiled with MicroSplat 1.6
+//   Compiled with MicroSplat 1.7
 //   Unity : 2017.1.1f1
 //   Platform : WindowsEditor
 //////////////////////////////////////////////////////
 
-Shader "MicroSplat/HeightMapTerrain" {
+Shader "MicroSplat/IceCoreTerrain" {
    Properties {
       [HideInInspector] _Control0 ("Control0", 2D) = "red" {}
       [HideInInspector] _Control1 ("Control1", 2D) = "black" {}
@@ -22,11 +22,11 @@ Shader "MicroSplat/HeightMapTerrain" {
       [NoScaleOffset]_PerTexProps("Per Texture Properties", 2D) = "black" {}
       _Contrast("Blend Contrast", Range(0.01, 0.99)) = 0.4
       _UVScale("UV Scales", Vector) = (45, 45, 0, 0)
-      _Aniso("Anistropic", Range(-1, 3)) = 0
-      _MipDistanceBias("Mip Distance Bias", Vector) = (0, 0, 0, 0)
 
 
 
+
+      _AlphaData("Alpha Params", Vector) = (0, 0, 0, 0)
 
 
       _StreamControl("Stream Control", 2D) = "black" {}
@@ -35,7 +35,7 @@ Shader "MicroSplat/HeightMapTerrain" {
       _WetnessParams("Min/Max Wetness", Vector) = (0, 1, 0, 0)
 
 
-      _HeightWetness("Height Wetness Params", Vector) = (1, 0.1, 1, 1)      // puddles
+      // puddles
       _PuddleParams("Puddle Blend", Vector) = (6, 1, 0, 0)
 
 
@@ -65,11 +65,11 @@ Shader "MicroSplat/HeightMapTerrain" {
       ZTest LEqual
       CGPROGRAM
       #pragma exclude_renderers d3d9
-      #pragma surface surf Standard vertex:vert fullforwardshadows
+      #pragma surface surf Standard vertex:vert fullforwardshadows addshadow
 
       #pragma target 3.5
 
-      #define _HEIGHTWETNESS 1
+      #define _ALPHAHOLE 1
       #define _MAX2LAYER 1
       #define _MICROSPLAT 1
       #define _PUDDLES 1
@@ -133,6 +133,7 @@ Shader "MicroSplat/HeightMapTerrain" {
          half4 cluster1;
          half4 cluster2;
          half4 cluster3;
+
       };
 
 
@@ -298,10 +299,7 @@ Shader "MicroSplat/HeightMapTerrain" {
          UNITY_INITIALIZE_OUTPUT(Config,config);
          half4 indexes = 0;
 
-
-
          fixed splats[TEXCOUNT];
-
 
          splats[0] = w0.x;
          splats[1] = w0.y;
@@ -374,7 +372,7 @@ Shader "MicroSplat/HeightMapTerrain" {
          }
 
          // sort if per tex
-         #if _PERTEXUVSCALEOFFSET
+         #if _PERTEXUVSCALEOFFSET && (!_MIPLOD && !_MIPGRAD)
          half4 nw = half4(0,0,0,0);
          half4 ni = half4(20,20,20,20);
 
@@ -437,6 +435,15 @@ Shader "MicroSplat/HeightMapTerrain" {
          #endif
       }
 
+      float ComputeMipLevel(float2 uv, float2 textureSize)
+      {
+         uv *= textureSize;
+         float2  dx_vtc        = ddx(uv);
+         float2  dy_vtc        = ddy(uv);
+         float delta_max_sqr   = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+         return 0.5 * log2(delta_max_sqr);
+      }
+
       inline fixed2 UnpackNormal2(fixed4 packednormal)
       {
          #if defined(UNITY_NO_DXT5nm)
@@ -456,16 +463,6 @@ Shader "MicroSplat/HeightMapTerrain" {
          return blend;
       }
 
-
-      // in case you need to reroute, this is wrapped..
-      #define MICROSPLAT_SAMPLE(tex, u) UNITY_SAMPLE_TEX2DARRAY(tex, u)
-
-
-
-      #define MICROSPLAT_SAMPLE_DIFFUSE(u, cl) MICROSPLAT_SAMPLE(_Diffuse, u)
-      #define MICROSPLAT_SAMPLE_NORMAL(u, cl) MICROSPLAT_SAMPLE(_NormalSAO, u)
-      #define MICROSPLAT_SAMPLE_DIFFUSE_LOD(u, cl, l) UNITY_SAMPLE_TEX2DARRAY_LOD(_Diffuse, u, l)
-
       // man I wish unity would wrap everything instead of only what they use. Just seems like a landmine for
       // people like myself..
       #if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE) || defined(UNITY_COMPILER_HLSLCC) || defined(SHADER_API_PSSL)
@@ -477,6 +474,53 @@ Shader "MicroSplat/HeightMapTerrain" {
       #endif
 
 
+
+      #if defined(SHADER_API_D3D11) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL) || defined(UNITY_COMPILER_HLSLCC)
+         #define MICROSPLAT_SAMPLE_TEX2D_GRAD(tex,coord,dx,dy) tex.SampleGrad (sampler##tex,coord,dx,dy)
+      #elif defined(SHADER_API_D3D9)
+         #define MICROSPLAT_SAMPLE_TEX2D_GRAD(tex,coord,dx,dy) half4(0,1,0,0) 
+      #elif defined(UNITY_COMPILER_HLSL2GLSL) || defined(SHADER_TARGET_SURFACE_ANALYSIS)
+         #define MICROSPLAT_SAMPLE_TEX2D_GRAD(tex,coord,dx,dy) tex2DArray(tex,coord,dx,dy)
+      #elif defined(SHADER_API_GLES)
+         #define MICROSPLAT_SAMPLE_TEX2D_GRAD(tex,coord,dx,dy) half4(1,1,0,0)
+      #elif defined(SHADER_API_D3D11_9X)
+         #define MICROSPLAT_SAMPLE_TEX2D_GRAD(tex,coord,dx,dy) half4(0,1,1,0) 
+      #else
+         #define MICROSPLAT_SAMPLE_TEX2D_GRAD(tex,coord,dx,dy) half4(0,0,1,0) 
+      #endif
+
+
+      #if _USELODMIP
+         #define MICROSPLAT_SAMPLE(tex, u, l) UNITY_SAMPLE_TEX2DARRAY_LOD(tex, u, l.x)
+      #elif _USEGRADMIP
+         #define MICROSPLAT_SAMPLE(tex, u, l) MICROSPLAT_SAMPLE_TEX2D_GRAD(tex, u, ddx(u), ddy(u))
+      #else
+         #define MICROSPLAT_SAMPLE(tex, u, l) UNITY_SAMPLE_TEX2DARRAY(tex, u)
+      #endif
+
+
+      #define MICROSPLAT_SAMPLE_DIFFUSE(u, cl, l) MICROSPLAT_SAMPLE(_Diffuse, u, l)
+      #define MICROSPLAT_SAMPLE_NORMAL(u, cl, l) MICROSPLAT_SAMPLE(_NormalSAO, u, l)
+      #define MICROSPLAT_SAMPLE_DIFFUSE_LOD(u, cl, l) UNITY_SAMPLE_TEX2DARRAY_LOD(_Diffuse, u, l)
+
+
+
+
+
+      float2 _AlphaData;
+
+      void ClipWaterLevel(float3 worldPos)
+      {
+         clip(worldPos.y - _AlphaData.y);
+      }
+
+      void ClipAlphaHole(float i)
+      {
+         if ((int)round(i) == (int)round(_AlphaData.x))
+         {
+            clip(-1);
+         }
+      }
 
          sampler2D _StreamControl;
       
@@ -499,10 +543,9 @@ Shader "MicroSplat/HeightMapTerrain" {
          #endif
 
          #if _PUDDLES
-            #if _GLOBALPUDDLES
-            half2 _Global_PuddleParams;
-            #else
             half2 _PuddleParams;
+            #if _GLOBALPUDDLES
+            half _Global_PuddleParams;
             #endif
          #endif
 
@@ -700,10 +743,9 @@ Shader "MicroSplat/HeightMapTerrain" {
          // modity lighting terms for water..
          float DoPuddles(inout MicroSplatLayer o, half puddleLevel, half porosity, float2 uv)
          {
-            #if _GLOBALPUDDLES
-            float2 pudParams = _Global_PuddleParams;
-            #else
             float2 pudParams = _PuddleParams;
+            #if _GLOBALPUDDLES
+            pudParams.y = _Global_PuddleParams;
             #endif
 
             puddleLevel *= pudParams.y;
@@ -989,9 +1031,9 @@ Shader "MicroSplat/HeightMapTerrain" {
 
 
 
-      void SampleAlbedo(Config config, TriplanarConfig tc, inout RawSamples s)
+      void SampleAlbedo(Config config, TriplanarConfig tc, inout RawSamples s, float mipLevel)
       {
-         
+
          #if _TRIPLANAR
 
             half4 contrasts = _Contrast.xxxx;
@@ -1001,9 +1043,9 @@ Shader "MicroSplat/HeightMapTerrain" {
             #endif
 
             {
-               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv0[0], config.cluster0);
-               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv0[1], config.cluster0);
-               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv0[2], config.cluster0);
+               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv0[0], config.cluster0, mipLevel);
+               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv0[1], config.cluster0, mipLevel);
+               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv0[2], config.cluster0, mipLevel);
                half3 bf = tc.pN0;
                #if _TRIPLANARHEIGHTBLEND
                bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN0, contrasts.x);
@@ -1013,9 +1055,9 @@ Shader "MicroSplat/HeightMapTerrain" {
                s.albedo0 = a0 * bf.x + a1 * bf.y + a2 * bf.z;
             }
             {
-               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv1[0], config.cluster1);
-               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv1[1], config.cluster1);
-               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv1[2], config.cluster1);
+               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv1[0], config.cluster1, mipLevel);
+               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv1[1], config.cluster1, mipLevel);
+               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv1[2], config.cluster1, mipLevel);
                half3 bf = tc.pN1;
                #if _TRIPLANARHEIGHTBLEND
                bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN1, contrasts.x);
@@ -1025,9 +1067,9 @@ Shader "MicroSplat/HeightMapTerrain" {
             }
             #if !_MAX2LAYER
             {
-               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv2[0], config.cluster2);
-               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv2[1], config.cluster2);
-               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv2[2], config.cluster2);
+               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv2[0], config.cluster2, mipLevel);
+               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv2[1], config.cluster2, mipLevel);
+               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv2[2], config.cluster2, mipLevel);
                half3 bf = tc.pN2;
                #if _TRIPLANARHEIGHTBLEND
                bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN2, contrasts.x);
@@ -1038,9 +1080,9 @@ Shader "MicroSplat/HeightMapTerrain" {
             #endif
             #if !_MAX3LAYER || !_MAX2LAYER
             {
-               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv3[0], config.cluster3);
-               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv3[1], config.cluster3);
-               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv3[2], config.cluster3);
+               half4 a0 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv3[0], config.cluster3, mipLevel);
+               half4 a1 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv3[1], config.cluster3, mipLevel);
+               half4 a2 = MICROSPLAT_SAMPLE_DIFFUSE(tc.uv3[2], config.cluster3, mipLevel);
                half3 bf = tc.pN3;
                #if _TRIPLANARHEIGHTBLEND
                bf = TriplanarHBlend(a0.a, a1.a, a2.a, tc.pN3, contrasts.x);
@@ -1051,65 +1093,65 @@ Shader "MicroSplat/HeightMapTerrain" {
             #endif
 
          #else
-            s.albedo0 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv0, config.cluster0);
-            s.albedo1 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv1, config.cluster1);
+            s.albedo0 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv0, config.cluster0, mipLevel);
+            s.albedo1 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv1, config.cluster1, mipLevel);
             #if !_MAX2LAYER
-            s.albedo2 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv2, config.cluster2); 
+            s.albedo2 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv2, config.cluster2, mipLevel); 
             #endif
             #if !_MAX3LAYER || !_MAX2LAYER
-            s.albedo3 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv3, config.cluster3);
+            s.albedo3 = MICROSPLAT_SAMPLE_DIFFUSE(config.uv3, config.cluster3, mipLevel);
             #endif
          #endif
       }
 
-      void SampleNormal(Config config, TriplanarConfig tc, inout RawSamples s)
+      void SampleNormal(Config config, TriplanarConfig tc, inout RawSamples s, float mipLevel)
       {
          #if _TRIPLANAR
 
             {
-               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv0[0], config.cluster0).garb;
-               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv0[1], config.cluster0).garb;
-               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv0[2], config.cluster0).garb;
+               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv0[0], config.cluster0, mipLevel).garb;
+               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv0[1], config.cluster0, mipLevel).garb;
+               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv0[2], config.cluster0, mipLevel).garb;
                s.normSAO0 = a0 * tc.pN0.x + a1 * tc.pN0.y + a2 * tc.pN0.z;
                s.normSAO0.xy = s.normSAO0.xy * 2 - 1;
             }
             {
-               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv1[0], config.cluster1).garb;
-               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv1[1], config.cluster1).garb;
-               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv1[2], config.cluster1).garb;
+               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv1[0], config.cluster1, mipLevel).garb;
+               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv1[1], config.cluster1, mipLevel).garb;
+               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv1[2], config.cluster1, mipLevel).garb;
                s.normSAO1 = a0 * tc.pN1.x + a1 * tc.pN1.y + a2 * tc.pN1.z;
                s.normSAO1.xy = s.normSAO1.xy * 2 - 1;
             }
             #if !_MAX2LAYER
             {
-               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv2[0], config.cluster2).garb;
-               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv2[1], config.cluster2).garb;
-               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv2[2], config.cluster2).garb;
+               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv2[0], config.cluster2, mipLevel).garb;
+               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv2[1], config.cluster2, mipLevel).garb;
+               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv2[2], config.cluster2, mipLevel).garb;
                s.normSAO2 = a0 * tc.pN2.x + a1 * tc.pN2.y + a2 * tc.pN2.z;
                s.normSAO2.xy = s.normSAO2.xy * 2 - 1;
             }
             #endif
             #if !_MAX3LAYER || !_MAX2LAYER
             {
-               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv3[0], config.cluster3).garb;
-               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv3[1], config.cluster3).garb;
-               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv3[2], config.cluster3).garb;
+               half4 a0 = MICROSPLAT_SAMPLE_NORMAL(tc.uv3[0], config.cluster3, mipLevel).garb;
+               half4 a1 = MICROSPLAT_SAMPLE_NORMAL(tc.uv3[1], config.cluster3, mipLevel).garb;
+               half4 a2 = MICROSPLAT_SAMPLE_NORMAL(tc.uv3[2], config.cluster3, mipLevel).garb;
                s.normSAO3 = a0 * tc.pN3.x + a1 * tc.pN3.y + a2 * tc.pN3.z;
                s.normSAO3.xy = s.normSAO3.xy * 2 - 1;
             }
             #endif
 
          #else
-            s.normSAO0 = MICROSPLAT_SAMPLE_NORMAL(config.uv0, config.cluster0).garb;
-            s.normSAO1 = MICROSPLAT_SAMPLE_NORMAL(config.uv1, config.cluster1).garb;
+            s.normSAO0 = MICROSPLAT_SAMPLE_NORMAL(config.uv0, config.cluster0, mipLevel).garb;
+            s.normSAO1 = MICROSPLAT_SAMPLE_NORMAL(config.uv1, config.cluster1, mipLevel).garb;
             s.normSAO0.xy = s.normSAO0.xy * 2 - 1;
             s.normSAO1.xy = s.normSAO1.xy * 2 - 1;
             #if !_MAX2LAYER
-            s.normSAO2 = MICROSPLAT_SAMPLE_NORMAL(config.uv2, config.cluster2).garb;
+            s.normSAO2 = MICROSPLAT_SAMPLE_NORMAL(config.uv2, config.cluster2, mipLevel).garb;
             s.normSAO2.xy = s.normSAO2.xy * 2 - 1;
             #endif
             #if !_MAX3LAYER || !_MAX2LAYER
-            s.normSAO3 = MICROSPLAT_SAMPLE_NORMAL(config.uv3, config.cluster3).garb;
+            s.normSAO3 = MICROSPLAT_SAMPLE_NORMAL(config.uv3, config.cluster3, mipLevel).garb;
             s.normSAO3.xy = s.normSAO3.xy * 2 - 1;
             #endif
          #endif
@@ -1129,6 +1171,28 @@ Shader "MicroSplat/HeightMapTerrain" {
          UNITY_INITIALIZE_OUTPUT(TriplanarConfig,tc);
          #if _TRIPLANAR
          PrepTriplanar(worldNormalVertex, i.worldPos, config, tc, weights);
+         #endif
+
+         float albedoLOD = 0;
+         float normalLOD = 0;
+
+         #if _USELODMIP
+            #if _TRIPLANAR
+               float2 cuv0 = tc.uv0[0].xy;
+            #else
+               float2 cuv0 = config.uv0.xy;
+            #endif
+            albedoLOD = ComputeMipLevel(cuv0, _Diffuse_TexelSize.zw);
+            normalLOD = ComputeMipLevel(cuv0, _NormalSAO_TexelSize.zw);
+         #endif
+
+         #if _DISTANCERESAMPLE
+            #if _TRIPLANAR
+               float2 tuv0 = tc.uv0[0].xy;
+            #else
+               float2 tuv0 = config.uv0.xy;
+            #endif
+            float resampleLOD = ComputeMipLevel(tuv0 * _ResampleDistanceParams.xx, _Diffuse_TexelSize.zw);
          #endif
 
          // uvScale before anything
@@ -1152,7 +1216,7 @@ Shader "MicroSplat/HeightMapTerrain" {
          RawSamples samples = (RawSamples)0;
          InitRawSamples(samples);
 
-         SampleAlbedo(config, tc, samples);
+         SampleAlbedo(config, tc, samples, albedoLOD);
 
          #if _STREAMS || _PARALLAX
          half earlyHeight = BlendWeights(samples.albedo0.w, samples.albedo1.w, samples.albedo2.w, samples.albedo3.w, weights);
@@ -1189,14 +1253,14 @@ Shader "MicroSplat/HeightMapTerrain" {
 
 
          #if _PARALLAX || _STREAMS
-            SampleAlbedo(config, tc, samples);
+            SampleAlbedo(config, tc, samples, albedoLOD);
          #endif
 
-         SampleNormal(config, tc, samples);
+         SampleNormal(config, tc, samples, normalLOD);
 
 
          #if _DISTANCERESAMPLE
-         DistanceResample(samples, config, tc, camDist, i.viewDir, fxLevels);
+         DistanceResample(samples, config, tc, camDist, i.viewDir, fxLevels, resampleLOD);
          #endif
 
          // PerTexture sampling goes here, passing the samples structure
@@ -1299,6 +1363,10 @@ Shader "MicroSplat/HeightMapTerrain" {
          ApplyDetailDistanceNoisePerTex(samples, config, camDist);
          #endif
 
+         #if _ANTITILEARRAYDETAIL || _ANTITILEARRAYDISTANCE || _ANTITILEARRAYNORMAL
+         ApplyAntiTilePerTex(samples, config, camDist);
+         #endif
+
          #if _GEOMAP && _PERTEXGEO
          GeoTexturePerTex(samples, i.worldPos, config);
          #endif
@@ -1323,6 +1391,8 @@ Shader "MicroSplat/HeightMapTerrain" {
          half4 albedo = BlendWeights(samples.albedo0, samples.albedo1, samples.albedo2, samples.albedo3, heightWeights);
          half4 normSAO = BlendWeights(samples.normSAO0, samples.normSAO1, samples.normSAO2, samples.normSAO3, heightWeights);
  
+		   // ADVANCEDTERRAIN_ENTRYPOINT	
+
          // effects which don't require per texture adjustments and are part of the splats sample go here. 
          // Often, as an optimization, you can compute the non-per tex version of above effects here..
 
@@ -1486,7 +1556,7 @@ ENDCG
 
    }
    Dependency "AddPassShader" = "Hidden/MicroSplat/AddPass"
-   Dependency "BaseMapShader" = "Hidden/MicroSplat/HeightMapTerrain_Base1524658154"
+   Dependency "BaseMapShader" = "Hidden/MicroSplat/IceCoreTerrain_Base408879058"
    CustomEditor "MicroSplatShaderGUI"
    Fallback "Nature/Terrain/Diffuse"
 }

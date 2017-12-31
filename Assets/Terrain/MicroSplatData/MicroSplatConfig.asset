@@ -21,11 +21,11 @@ MonoBehaviour:
   normalSAOArray2: {fileID: 0}
   diffuseArray3: {fileID: 0}
   normalSAOArray3: {fileID: 0}
-  diffuseTextureSize: 1024
+  diffuseTextureSize: 512
   diffuseCompression: 0
   diffuseFilterMode: 1
   diffuseAnisoLevel: 1
-  normalSAOTextureSize: 1024
+  normalSAOTextureSize: 512
   normalCompression: 0
   normalFilterMode: 2
   normalAnisoLevel: 1
@@ -60,6 +60,23 @@ MonoBehaviour:
     height: {fileID: 0}
     heightChannel: 1
     normal: {fileID: 2800000, guid: 4ff86c9a2ec8d44e89657b2e8631c6c1, type: 3}
+    smoothness: {fileID: 0}
+    smoothnessChannel: 1
+    isRoughness: 0
+    ao: {fileID: 0}
+    aoChannel: 1
+    alpha: {fileID: 0}
+    alphaChannel: 1
+    noiseNormal: {fileID: 0}
+    detailNoise: {fileID: 0}
+    detailChannel: 1
+    distanceNoise: {fileID: 0}
+    distanceChannel: 1
+  - substance: {fileID: 0}
+    diffuse: {fileID: 2800000, guid: d7e0db034c7d7b94fa78478a9dac267a, type: 3}
+    height: {fileID: 0}
+    heightChannel: 1
+    normal: {fileID: 0}
     smoothness: {fileID: 0}
     smoothnessChannel: 1
     isRoughness: 0
@@ -107,7 +124,41 @@ MonoBehaviour:
     detailChannel: 1
     distanceNoise: {fileID: 0}
     distanceChannel: 1
+  - substance: {fileID: 0}
+    diffuse: {fileID: 0}
+    height: {fileID: 0}
+    heightChannel: 1
+    normal: {fileID: 0}
+    smoothness: {fileID: 0}
+    smoothnessChannel: 1
+    isRoughness: 0
+    ao: {fileID: 0}
+    aoChannel: 1
+    alpha: {fileID: 0}
+    alphaChannel: 1
+    noiseNormal: {fileID: 0}
+    detailNoise: {fileID: 0}
+    detailChannel: 1
+    distanceNoise: {fileID: 0}
+    distanceChannel: 1
   sourceTextures3:
+  - substance: {fileID: 0}
+    diffuse: {fileID: 0}
+    height: {fileID: 0}
+    heightChannel: 1
+    normal: {fileID: 0}
+    smoothness: {fileID: 0}
+    smoothnessChannel: 1
+    isRoughness: 0
+    ao: {fileID: 0}
+    aoChannel: 1
+    alpha: {fileID: 0}
+    alphaChannel: 1
+    noiseNormal: {fileID: 0}
+    detailNoise: {fileID: 0}
+    detailChannel: 1
+    distanceNoise: {fileID: 0}
+    distanceChannel: 1
   - substance: {fileID: 0}
     diffuse: {fileID: 0}
     height: {fileID: 0}
