@@ -99,11 +99,11 @@
     //     v.vertex.y += sin((v.vertex.y + _Time * _Value3 ) * _Value2 ) * _Value1;
 		 
 			 // X Axis Sin Wave Deformation
-         v.vertex.x += sin((v.vertex.x + totalOffset * _WaveValueX3 ) * _WaveValueX2 ) * _WaveValueX1;
+         v.vertex.z += sin((v.vertex.z + totalOffset * _WaveValueX3 ) * _WaveValueX2 ) * _WaveValueX1;
 
 
 		 // Y Axis Sin Wave Deformation
-		 v.vertex.y += sin((v.vertex.y + totalOffset * _WaveValueY3) * _WaveValueY2) * _WaveValueY1;
+		 v.vertex.z += sin((v.vertex.z + totalOffset * _WaveValueY3) * _WaveValueY2) * _WaveValueY1;
 
 
 		 // Z Axis Sin Wave Deformation
