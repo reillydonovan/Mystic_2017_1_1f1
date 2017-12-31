@@ -69,11 +69,11 @@ namespace ProceduralToolkit.Examples
         {
             controller = new BoidController();
 
-            GeneratePalette();
-            Color colorA = GetMainColorHSV().ToColor();
-            Color colorB = GetSecondaryColorHSV().ToColor();
+        //    GeneratePalette();
+       //     Color colorA = GetMainColorHSV().ToColor();
+         //   Color colorB = GetSecondaryColorHSV().ToColor();
 
-            config.template = MeshDraft.Teardrop(0.3f, .5f, 3, 6);
+            config.template = MeshDraft.Spheroid(0.05f, .1f, 6, 6);
             // Assuming that we are dealing with tetrahedron, first vertex should be boid's "nose"
          //   config.template.colors.Add(colorA);
             for (int i = 1; i < config.template.vertexCount; i++)
