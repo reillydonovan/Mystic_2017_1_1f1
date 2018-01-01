@@ -40,7 +40,8 @@ PlayerSettings:
   m_SplashScreenLogos: []
   m_SplashScreenBackgroundLandscape: {fileID: 0}
   m_SplashScreenBackgroundPortrait: {fileID: 0}
-  m_VirtualRealitySplashScreen: {fileID: 0}
+  m_VirtualRealitySplashScreen: {fileID: 2800000, guid: 9840ef1b88a316f4aac6e7cee36bc3ae,
+    type: 3}
   m_HolographicTrackingLossScreen: {fileID: 0}
   defaultScreenWidth: 1024
   defaultScreenHeight: 768
@@ -528,8 +529,10 @@ PlayerSettings:
   metroCertificateIssuer: DefaultCompany
   metroCertificateNotAfter: 0074b113619ed401
   metroApplicationDescription: 12_31_17
-  wsaImages: {}
-  metroTileShortName: 
+  wsaImages:
+    2228374: Assets/Textures/3QView01_465.png
+    2293960: Assets/Textures/3QView01_620wide.png
+  metroTileShortName: 12_31_17
   metroCommandLineArgsFile: 
   metroTileShowName: 0
   metroMediumTileShowName: 0
