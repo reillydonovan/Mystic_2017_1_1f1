@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: IceTopMicroSplat
+  m_Shader: {fileID: 4800000, guid: 9532319c2c6e8324186de4d19dea301c, type: 3}
+  m_ShaderKeywords: _ALPHAHOLE _HEIGHTWETNESS _MAX2LAYER _MAX8TEXTURES _MICROSPLAT
+    _PUDDLES _RAINDROPS _STREAMS _WETNESS
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Control0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Control1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Control2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Control3:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Diffuse:
+        m_Texture: {fileID: 18700000, guid: f297fc063ef4d084987edb2654952540, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalSAO:
+        m_Texture: {fileID: 18700000, guid: 62875e569b7ad2547abd3e481d131c70, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PerTexProps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RainDropTexture:
+        m_Texture: {fileID: 2800000, guid: aca95408547244a2b8760b8425b5b0fc, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StreamControl:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StreamNormal:
+        m_Texture: {fileID: 2800000, guid: 04426e150438d48e19ee055632fedf02, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Contrast: 0.4
+    - _GlobalPorosity: 0.4
+    - _StreamBlend: 40
+    - _StreamMax: 1
+    m_Colors:
+    - _AlphaData: {r: 1, g: 0, b: 0, a: 0}
+    - _HeightWetness: {r: 1, g: 0.1, b: 1, a: 1}
+    - _PuddleParams: {r: 6, g: 1, b: 0, a: 0}
+    - _RainIntensityScale: {r: 1, g: 30, b: 0, a: 0}
+    - _StreamFlowParams: {r: 0.4, g: 0.5, b: 0.3, a: 0.2}
+    - _StreamNormalFoam: {r: 0.35, g: 12, b: 0, a: 0}
+    - _StreamUVScales: {r: 70, g: 70, b: 70, a: 70}
+    - _UVScale: {r: 5, g: 5, b: 0, a: 0}
+    - _WetnessParams: {r: 0, g: 1, b: 0, a: 0}
