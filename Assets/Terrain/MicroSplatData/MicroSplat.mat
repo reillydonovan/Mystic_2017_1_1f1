@@ -8,8 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: MicroSplat
   m_Shader: {fileID: 4800000, guid: 3dcc8bfc0a46ea94f8b6da1c7bd88a7b, type: 3}
-  m_ShaderKeywords: _ALPHAHOLE _MAX2LAYER _MAX8TEXTURES _MICROSPLAT _PUDDLES _RAINDROPS
-    _STREAMS _WETNESS
+  m_ShaderKeywords: _ALPHAHOLE _MAX2LAYER _MAX8TEXTURES _MICROSPLAT _USELODMIP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -51,6 +50,14 @@ Material:
         m_Texture: {fileID: 2800000, guid: aca95408547244a2b8760b8425b5b0fc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SnowDiff:
+        m_Texture: {fileID: 2800000, guid: b822881b9ef3441f29c88bb6e0ef60cd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SnowNormal:
+        m_Texture: {fileID: 2800000, guid: cc22f06eaf78d43f782ee617776c1640, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _StreamControl:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -60,14 +67,19 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Contrast: 0.4
+    - _Contrast: 0.0001
     - _GlobalPorosity: 0.4
+    - _SnowAmount: 0.5
     - _StreamBlend: 40
     - _StreamMax: 1
     m_Colors:
     - _AlphaData: {r: 2, g: 0, b: 0, a: 0}
     - _PuddleParams: {r: 6, g: 1, b: 0, a: 0}
     - _RainIntensityScale: {r: 1, g: 30, b: 0, a: 0}
+    - _SnowHeightAngleRange: {r: 50, g: 90, b: 0, a: 1}
+    - _SnowParams: {r: 0, g: 0, b: 0.3, a: 0.1}
+    - _SnowUVScales: {r: 50, g: 50, b: 0, a: 0}
+    - _SnowUpVector: {r: 0, g: 1, b: 0, a: 0}
     - _StreamFlowParams: {r: 0.4, g: 0.5, b: 0.3, a: 0.2}
     - _StreamNormalFoam: {r: 0.35, g: 12, b: 0, a: 0}
     - _StreamUVScales: {r: 70, g: 70, b: 70, a: 70}

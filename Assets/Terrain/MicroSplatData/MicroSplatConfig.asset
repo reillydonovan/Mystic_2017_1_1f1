@@ -21,11 +21,11 @@ MonoBehaviour:
   normalSAOArray2: {fileID: 0}
   diffuseArray3: {fileID: 0}
   normalSAOArray3: {fileID: 0}
-  diffuseTextureSize: 1024
+  diffuseTextureSize: 512
   diffuseCompression: 0
   diffuseFilterMode: 1
   diffuseAnisoLevel: 1
-  normalSAOTextureSize: 1024
+  normalSAOTextureSize: 512
   normalCompression: 0
   normalFilterMode: 2
   normalAnisoLevel: 1
