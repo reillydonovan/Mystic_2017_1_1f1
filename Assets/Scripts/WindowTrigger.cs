@@ -5,14 +5,17 @@ using UnityEngine;
 public class WindowTrigger : MonoBehaviour
 {
     
-    public GameObject TargetGameObject;
-   
+    public GameObject TerrainGameObject;
+    public GameObject SourceGameObject;
+    public GameObject PuddleGameObject;
+
 
     void Start()
     {
-      //  rend = ChangeObject.GetComponent<Renderer>();
-      //  rend.enabled = true;
-     //   rend.sharedMaterial = material[0];
+        //  rend = ChangeObject.GetComponent<Renderer>();
+        //  rend.enabled = true;
+        //   rend.sharedMaterial = material[0];
+        SourceGameObject.SetActive(false);
     }
 
     void OnTriggerEnter(Collider col)
@@ -21,7 +24,9 @@ public class WindowTrigger : MonoBehaviour
         {
             case "MainCamera":
                 //     Debug.Log("Object entered the trigger");
-                TargetGameObject.SetActive(false);
+                TerrainGameObject.SetActive(false);
+                PuddleGameObject.SetActive(false);
+                SourceGameObject.SetActive(true);
                 break;
         }
     }
@@ -43,7 +48,9 @@ public class WindowTrigger : MonoBehaviour
             case "MainCamera":
                 //  Debug.Log("Object exited the trigger");
                 //   rend.sharedMaterial = material[0];
-                TargetGameObject.SetActive(true);
+                PuddleGameObject.SetActive(true);
+                TerrainGameObject.SetActive(true);
+                SourceGameObject.SetActive(false);
                 break;
         }
     }
