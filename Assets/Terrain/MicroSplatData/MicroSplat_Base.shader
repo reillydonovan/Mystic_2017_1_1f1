@@ -8,7 +8,7 @@
 //   Platform : WindowsEditor
 //////////////////////////////////////////////////////
 
-Shader "Hidden/MicroSplat/IceCoreTerrain_Base345535484" {
+Shader "Hidden/MicroSplat/IceCoreTerrain_Base1172119098" {
    Properties {
       [HideInInspector] _Control0 ("Control0", 2D) = "red" {}
       [HideInInspector] _Control1 ("Control1", 2D) = "black" {}
@@ -29,14 +29,6 @@ Shader "Hidden/MicroSplat/IceCoreTerrain_Base345535484" {
 
       _StreamControl("Stream Control", 2D) = "black" {}
       _GlobalPorosity("Porosity", Range(0.0, 1.0)) = 0.4
-      // wetness
-      _WetnessParams("Min/Max Wetness", Vector) = (0, 1, 0, 0)
-
-
-      // puddles
-      _PuddleParams("Puddle Blend", Vector) = (6, 1, 0, 0)
-
-
       // streams
       _StreamFlowParams("Stream Flow Params", Vector) = (0.4,0.5,0.3, 0.2)
       _StreamBlend("Stream Blend", Range(1, 60)) = 40
@@ -46,10 +38,6 @@ Shader "Hidden/MicroSplat/IceCoreTerrain_Base345535484" {
       _StreamUVScales("Stream UV Scales", Vector) = (70, 70, 70, 70)
 
 
-
-      _RainDropTexture("RainDrop Texture", 2D) = "white" {}
-      _RainIntensityScale("Intensity/Scale", Vector) = (0, 150, 0, 0)
-	
 
 
    }
@@ -71,10 +59,7 @@ Shader "Hidden/MicroSplat/IceCoreTerrain_Base345535484" {
       #define _MAX2LAYER 1
       #define _MAX8TEXTURES 1
       #define _MICROSPLAT 1
-      #define _PUDDLES 1
-      #define _RAINDROPS 1
       #define _STREAMS 1
-      #define _WETNESS 1
 
 
       #include "UnityCG.cginc"
