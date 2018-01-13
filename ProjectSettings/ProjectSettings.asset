@@ -11,7 +11,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: HotBitSoupLLC
-  productName: 01_12_18
+  productName: 01_13_18_2
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -521,14 +521,14 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: 011218
+  metroPackageName: 0113182
   metroPackageVersion: 1.0.0.0
   metroCertificatePath: Assets\WSATestCertificate.pfx
   metroCertificatePassword: 
   metroCertificateSubject: DefaultCompany
   metroCertificateIssuer: DefaultCompany
   metroCertificateNotAfter: 0074b113619ed401
-  metroApplicationDescription: 01_12_18
+  metroApplicationDescription: 01_13_18_2
   wsaImages:
     2228374: Assets/Textures/3QView01_465.png
     2293960: Assets/Textures/3QView01_620wide.png
