@@ -21,4 +21,35 @@ public class MoveObject : MonoBehaviour {
         ObjectToMove.transform.position = ObjectPosition;
       //  Debug.Log("moved down" + ObjectPosition.y);
     }
+
+    public void MoveForward()
+    {
+        Vector3 ObjectPosition = ObjectToMove.transform.position;
+        ObjectPosition.z += 0.1f;
+        ObjectToMove.transform.position = ObjectPosition;
+        //  Debug.Log("moved down" + ObjectPosition.y);
+    }
+
+    public void MoveBack()
+    {
+        Vector3 ObjectPosition = ObjectToMove.transform.position;
+        ObjectPosition.z -= 0.1f;
+        ObjectToMove.transform.position = ObjectPosition;
+        //  Debug.Log("moved down" + ObjectPosition.y);
+    }
+
+    public void MoveLeft()
+    {
+        Vector3 ObjectPosition = ObjectToMove.transform.position;
+        ObjectPosition.x += 0.1f;
+        ObjectToMove.transform.position = ObjectPosition;
+        //  Debug.Log("moved down" + ObjectPosition.y);
+    }
+    public void MoveRight()
+    {
+        Vector3 ObjectPosition = ObjectToMove.transform.position;
+        ObjectPosition.x -= 0.1f;
+        ObjectToMove.transform.position = ObjectPosition;
+        //  Debug.Log("moved down" + ObjectPosition.y);
+    }
 }
