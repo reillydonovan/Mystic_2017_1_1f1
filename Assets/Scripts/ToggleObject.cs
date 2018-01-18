@@ -10,7 +10,7 @@ public class ToggleObject : MonoBehaviour {
     void Start()
     {
 
-        toggle = false;
+        toggle = true;
     }
 	// Use this for initialization
 	public void ObjectToToggle () {
