@@ -18,4 +18,14 @@ public class ToggleObject : MonoBehaviour {
         toggleGameObject.SetActive(toggle);
      		
 	}
+
+    public void ToggleOn()
+    {
+        toggleGameObject.SetActive(true);
+    }
+
+    public void ToggleOff()
+    {
+        toggleGameObject.SetActive(false);
+    }
 }
