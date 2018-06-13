@@ -5,6 +5,12 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Mystic.unity
     guid: caa328a58c9c0af45b7ed3503f3cb348
+  - enabled: 0
+    path: Assets/Scenes/Yale.unity
+    guid: dc3e1c2832fd4c7459167467d6033134
+  - enabled: 1
+    path: Assets/Scenes/Anchorage.unity
+    guid: 003773b3d6bfe2b4399afc6c864dc37d
