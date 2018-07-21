@@ -136,7 +136,7 @@ PlayerSettings:
       depthFormat: 0
       useSustainedPerformanceMode: 0
     hololens:
-      depthFormat: 0
+      depthFormat: 1
   protectGraphicsMemory: 0
   useHDRDisplay: 0
   targetPixelDensity: 0
